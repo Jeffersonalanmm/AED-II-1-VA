@@ -4,63 +4,63 @@
 
 rb no_null;
 
-rbIndex* inicializar_indice_rb(int index, char *servings)  {
-	rbIndex *novo = (rbIndex*) malloc(sizeof(rbIndex));
-	novo->index = index;
-	novo->servings = (char*) malloc(sizeof(char));
-	strcpy(novo->servings, servings);
-	return novo;
+rbIndex* initializeIndexRb(int index, char *difficulty)  {
+	rbIndex *new = (rbIndex*) malloc(sizeof(rbIndex));
+	new->index = index;
+	new->difficulty = (char*) malloc(sizeof(char));
+	strcpy(new->difficulty, difficulty);
+	return new;
 }
 
-void inicializar_rb(rb *raiz) {
-	*raiz = NULL;
+void initializeRb(rb *root) {
+	*root = NULL;
 	no_null = (rb) malloc(sizeof(struct rbNode));
-	no_null->cor = DUPLO_PRETO;
+	no_null->color = DOUBLE_BLACK;
 	no_null->data = 0;
 	no_null->left = NULL;
 	no_null->right = NULL;
 }
 
-int eh_raiz_rb(rb elemento) {
-	return (elemento->father == NULL);
+int isRootRb(rb element) {
+	return (element->father == NULL);
 }
 
-int eh_filho_leftuerdo_rb(rb elemento) {
-	return (elemento->father != NULL && elemento == elemento->father->left);
+int isLeftChildRb(rb element) {
+	return (element->father != NULL && element == element->father->left);
 }
-int eh_filho_righteito_rb(rb elemento) {
-	return (elemento->father != NULL && elemento == elemento->father->right);
+int isRightChildRb(rb element) {
+	return (element->father != NULL && element == element->father->right);
 }
 
-rb eh_irmao_rb(rb elemento) {
+rb isBrotherRb(rb element) {
 	//se ele eh o filho leftuerdo, retorna o filho do nodo acima dele, a righteita
-	if(eh_filho_leftuerdo_rb(elemento))
-		return elemento->father->right;
+	if(isLeftChildRb(element))
+		return element->father->right;
 	else
-		return elemento->father->left;
+		return element->father->left;
 }
 
-rb tio_rb(rb elemento) {
-	return eh_irmao_rb(elemento->father);
+rb uncleRb(rb element) {
+	return isBrotherRb(element->father);
 }
 
 
-enum cor cor_rb(rb elemento) {
-	enum cor c;
-	if(elemento == NULL)
-		c = PRETO;
+enum color colorRb(rb element) {
+	enum color c;
+	if(element == NULL)
+		c = BLACK;
 	else
-		c = elemento->cor;
+		c = element->color;
 	return c;
 }
 	
-int altura_rb(rb a) {
+int heightRb(rb a) {
 	if(a == NULL) 
 		return 0;
 	else {
 		int left, right;
-		left = altura_rb(a->left);
-		right = altura_rb(a->right);
+		left = heightRb(a->left);
+		right = heightRb(a->right);
 
 		if(left > right)
 			return (left + 1);
@@ -69,339 +69,352 @@ int altura_rb(rb a) {
 	}
 }
 
-rbIndex* maior_elemento_rb(rb raiz) {
-	if(raiz == NULL)
+rbIndex* maxElementRb(rb root) {
+	if(root == NULL)
 		return NULL;
-	if(raiz->right == NULL)
-		return raiz->data;
+	if(root->right == NULL)
+		return root->data;
 	else
-		return maior_elemento_rb(raiz->right);
+		return maxElementRb(root->right);
 }
 
-void imprimir_rb(rb raiz) {
-	if(raiz != NULL) {
-		imprimir_rb(raiz->left);
-		imprimir_elemento_rb(raiz);
-		imprimir_rb(raiz->right);
+void printRb(rb root) {
+	if(root != NULL) {
+		printRb(root->left);
+		printElementRb(root);
+		printRb(root->right);
 	}
 }
 
-void imprimir_elemento_rb(rb raiz) {
-	switch(raiz->cor) {
-		case PRETO:
-			printf("\x1b[30m[%s]\x1b[0m", raiz->data->servings);
+void printElementRb(rb root) {
+	switch(root->color) {
+		case BLACK:
+			printf("\x1b[30m[%s]\x1b[0m", root->data->difficulty);
 			break;
-		case VERMELHO:
-			printf("\x1b[31m[%s]\x1b[0m", raiz->data->servings);
+		case RED:
+			printf("\x1b[31m[%s]\x1b[0m", root->data->difficulty);
 			break;
-		case DUPLO_PRETO:
-			printf("\x1b[32m[%s]\x1b[0m", raiz->data->servings);
+		case DOUBLE_BLACK:
+			printf("\x1b[32m[%s]\x1b[0m", root->data->difficulty);
 			break;
 	}
 }
 
 
-void inserir_rb(rb *raiz, rbIndex *valor) {
-	rb aux, father, novo;
-	aux = *raiz; 
+void insertRb(rb *root, rbIndex *valor) {
+	rb aux, father, new;
+	aux = *root; 
 	father = NULL;
 
 	while(aux != NULL) {
 		father = aux;
-		//verificando para que lado devemos percorrer
-		if(strcmp(aux->data->servings, valor->servings) >= 0)
+		//verificando para que lado devemos percolorrer
+		if(strcmp(aux->data->difficulty, valor->difficulty) >= 0)
 			aux = aux->left;
 		else
 			aux = aux->right;
 	}
 
-	novo = (rb) malloc(sizeof(struct rbNode));
-	novo->data = valor;
-	novo->left = NULL;
-	novo->right = NULL;
-	novo->father = father;
-	novo->cor = VERMELHO;
+	new = (rb) malloc(sizeof(struct rbNode));
+	new->data = valor;
+	new->left = NULL;
+	new->right = NULL;
+	new->father = father;
+	new->color = RED;
 
-	if(eh_raiz_rb(novo)) {
-		*raiz = novo;
+	if(isRootRb(new)) {
+		*root = new;
 	} else {
-		if(strcmp(valor->servings, father->data->servings) > 0)
-			father->right = novo;
+		if(strcmp(valor->difficulty, father->data->difficulty) > 0)
+			father->right = new;
 		else  
-			father->left = novo; 
+			father->left = new; 
 	}
 
-	//essa eh a raiz de toda a arvore, não a raiz relativa;
-	//apos inserido o elemento, precisamos verificar a cor dele e afins
-	ajustar_rb(raiz, novo);
+	//essa eh a root de toda a arvore, não a root relativa;
+	//apos inserido o element, precisamos verificar a color dele e afins
+	adjustRb(root, new);
 
 }
 
-void remover_rb(rb *raiz, rb* raiz_relativa, char* servings) {
-	rb aux = *raiz_relativa;
+void removeRb(rb *root, rb* root_relativa, char* difficulty) {
+    rb aux = *root_relativa;
 
-	while(aux != NULL) {
-		if(strcmp(servings, aux->data->servings) == 0) {
-			//sem filhos
-			if(aux->left == NULL && aux->right == NULL) {
-				//remover_rb raiz sem filhos
-				if(eh_raiz_rb(aux)) {
-					*raiz = NULL;
-					break;
-				}
-				//sem filhos, mas nao raiz
-				if(aux->cor == VERMELHO) {
-					if(eh_filho_leftuerdo_rb(aux))
-						aux->father->left = NULL;
-					else
-						aux->father->right = NULL;
-					break;
+    while(aux != NULL) {
+        if(strcmp(difficulty, aux->data->difficulty) == 0) {
+            // Sem filhos
+            if(aux->left == NULL && aux->right == NULL) {
+                // Remove a root sem filhos
+                if(isRootRb(aux)) {
+                    free(aux->data->difficulty);
+                    free(aux->data);
+                    free(aux);
+                    *root = NULL;
+                    break;
+                }
+                // Sem filhos, mas não root
+                if(aux->color == RED) {
+                    if(isLeftChildRb(aux))
+                        aux->father->left = NULL;
+                    else
+                        aux->father->right = NULL;
+                    free(aux->data->difficulty);
+                    free(aux->data);
+                    free(aux);
+                    break;
 
-				} else {
-					/*se o elemento for preto, 
-					precisa substituir pelo nonull */
-					no_null->father = aux->father;
+                } else {
+                    /* Se o elemento for BLACK, 
+                       precisa substituir pelo no_null */
+                    rb no_null_father = aux->father;
+                    rb no_null_child = aux;
 
-					if(eh_filho_leftuerdo_rb(aux))
-						aux->father->left = no_null;
-					else 
-						aux->father->right = no_null;
+                    if(isLeftChildRb(aux))
+                        aux->father->left = no_null;
+                    else 
+                        aux->father->right = no_null;
 
-					reajustar_rb(raiz, no_null);
-					break;
-				}
-			}
-			//um filho
+                    readjustRb(root, no_null_child);
+                    break;
+                }
+            }
+            // Um filho
+            // Apenas o filho esquerdo
+            if(aux->right == NULL) {
+                aux->left->color = BLACK;
+                if(isRootRb(aux)) {
+                    *root = aux->left;
+                } else {
+                    if(isLeftChildRb(aux))
+                        aux->father->left = aux->left;
+                    else 
+                        aux->father->right = aux->left;
+                }
+                free(aux->data->difficulty);
+                free(aux->data);
+                free(aux);
+                break;
+            }
+            // Apenas filho direito
+            if(aux->left == NULL) {
+                aux->right->color = BLACK;
+                if(isRootRb(aux)) {
+                    *root = aux->right;
+                } else {
+                    if(isLeftChildRb(aux))
+                        aux->father->left = aux->right;
+                    else
+                        aux->father->right = aux->right;
+                }
+                free(aux->data->difficulty);
+                free(aux->data);
+                free(aux);
+                break;
+            }
+            // Dois filhos
+            if(aux->right != NULL && aux->left != NULL) {
+                aux->data = maxElementRb(aux->left);
+                removeRb(root, &(aux->left), aux->data->difficulty);
+                break;
+            }
 
-			//apenas o filho leftuerdo
-			if(aux->right == NULL) {
-				aux->left->cor = PRETO;
-				if(eh_raiz_rb(aux)) {
-					*raiz = aux->left;
-				} else {
-					if(eh_filho_leftuerdo_rb(aux))
-						aux->father->left = aux->left;
-					else 
-						aux->father->right = aux->left;
-				}
-				break;
-			}
-			//apenas filho righteito
-			if(aux->left == NULL) {
-				aux->right->cor = PRETO;
-				if(eh_raiz_rb(aux)) {
-					*raiz = aux->right;
-				} else {
-					if(eh_filho_leftuerdo_rb(aux))
-						aux->father->left = aux->right;
-					else
-						aux->father->right = aux->right;
-				}
-				break;
-			}
-			//dois filhos
-			if(aux->right != NULL && aux->left != NULL) {
-				aux->data = maior_elemento_rb(aux->left);
-				remover_rb(raiz, &(aux->left), aux->data->servings);
-				break;
-			}
-
-		} else {
-			if(strcmp(servings, aux->data->servings) > 0)
-				aux = aux->right;
-			else
-				aux = aux->left;
-		}
-	}
+        } else {
+            if(strcmp(difficulty, aux->data->difficulty) > 0)
+                aux = aux->right;
+            else
+                aux = aux->left;
+        }
+    }
 }
 
-void reajustar_rb(rb *raiz, rb elemento) {
+
+void readjustRb(rb *root, rb element) {
 	
-	//caso 1: eh a raiz
-	if(eh_raiz_rb(elemento)) {
-		elemento->cor = PRETO;
+	//caso 1: eh a root
+	if(isRootRb(element)) {
+		element->color = BLACK;
 
 		return;
 	}
 
-	//caso 2: father preto, irmao vermelho e sobrinhos preto
-	if(cor_rb(elemento->father) == PRETO &&
-	 cor_rb(eh_irmao_rb(elemento)) == VERMELHO &&
-	 (cor_rb(eh_irmao_rb(elemento)->right) == PRETO || eh_irmao_rb(elemento)->right == NULL) &&
-	 (cor_rb(eh_irmao_rb(elemento)->left) == PRETO || eh_irmao_rb(elemento)->left == NULL)) {
-		if(eh_filho_leftuerdo_rb(elemento))
-			rotacao_simples_leftuerda_rb(raiz, elemento);
+	//caso 2: father BLACK, irmao RED e sobrinhos BLACK
+	if(colorRb(element->father) == BLACK &&
+	 colorRb(isBrotherRb(element)) == RED &&
+	 (colorRb(isBrotherRb(element)->right) == BLACK || isBrotherRb(element)->right == NULL) &&
+	 (colorRb(isBrotherRb(element)->left) == BLACK || isBrotherRb(element)->left == NULL)) {
+		if(isLeftChildRb(element))
+			simpleLeftRotationRb(root, element);
 		else 
-			rotacao_simples_righteita_rb(raiz, elemento);
+			simpleRightRotationRb(root, element);
 
-		elemento->father->father->cor = PRETO;
-		elemento->father->cor = VERMELHO;
+		element->father->father->color = BLACK;
+		element->father->color = RED;
 
 		return;
 	 }
 
-	 //caso 3: father, irmaos e sobrinhos pretos
-	 if(cor_rb(elemento -> father) == PRETO && cor_rb(eh_irmao_rb(elemento)) == PRETO &&
-		(cor_rb(eh_irmao_rb(elemento)-> right)  == PRETO || eh_irmao_rb(elemento) -> right == NULL) && 
-		(cor_rb(eh_irmao_rb(elemento) -> left)  == PRETO || eh_irmao_rb(elemento) -> left == NULL)){	
-		eh_irmao_rb(elemento) -> cor = VERMELHO;
-		retira_duplo_preto_rb(raiz, elemento);
-		reajustar_rb(raiz, elemento->father);
+	 //caso 3: father, irmaos e sobrinhos BLACKs
+	 if(colorRb(element -> father) == BLACK && colorRb(isBrotherRb(element)) == BLACK &&
+		(colorRb(isBrotherRb(element)-> right)  == BLACK || isBrotherRb(element) -> right == NULL) && 
+		(colorRb(isBrotherRb(element) -> left)  == BLACK || isBrotherRb(element) -> left == NULL)){	
+		isBrotherRb(element) -> color = RED;
+		removeDoubleBlackRb(root, element);
+		readjustRb(root, element->father);
 
 		return;
 	}
 
-	//caso 4: father vermelho, irmao e sobrinhps preto
-	if(cor_rb(elemento -> father) == VERMELHO && 
-		(cor_rb(eh_irmao_rb(elemento)) == PRETO || eh_irmao_rb(elemento) == NULL) &&
-		(cor_rb(eh_irmao_rb(elemento)-> right)  == PRETO || eh_irmao_rb(elemento) -> right == NULL) && (cor_rb(eh_irmao_rb(elemento) -> left) == PRETO || eh_irmao_rb(elemento) -> left == NULL)){
+	//caso 4: father RED, irmao e sobrinhps BLACK
+	if(colorRb(element -> father) == RED && 
+		(colorRb(isBrotherRb(element)) == BLACK || isBrotherRb(element) == NULL) &&
+		(colorRb(isBrotherRb(element)-> right)  == BLACK || isBrotherRb(element) -> right == NULL) && (colorRb(isBrotherRb(element) -> left) == BLACK || isBrotherRb(element) -> left == NULL)){
 
-			elemento -> father -> cor = PRETO;
-			eh_irmao_rb(elemento) -> cor = VERMELHO;
+			element -> father -> color = BLACK;
+			isBrotherRb(element) -> color = RED;
 			
-			retira_duplo_preto_rb(raiz, elemento); 
+			removeDoubleBlackRb(root, element); 
 
 			return;
 
 	}
-	// CASO 5: irmão preto e um dos sobrinhos vermelho
+	// CASO 5: irmão BLACK e um dos sobrinhos RED
 
 	//caso 5a
-	if(eh_filho_leftuerdo_rb(elemento) && cor_rb(eh_irmao_rb(elemento)) == PRETO &&
-		(cor_rb(eh_irmao_rb(elemento) -> right) == PRETO || eh_irmao_rb(elemento) -> right == NULL) && cor_rb(eh_irmao_rb(elemento) -> left) == VERMELHO){
+	if(isLeftChildRb(element) && colorRb(isBrotherRb(element)) == BLACK &&
+		(colorRb(isBrotherRb(element) -> right) == BLACK || isBrotherRb(element) -> right == NULL) && colorRb(isBrotherRb(element) -> left) == RED){
 			
-			rotacao_simples_righteita_rb(raiz, eh_irmao_rb(elemento));
-			eh_irmao_rb(elemento) -> cor = PRETO;
-			eh_irmao_rb(elemento) -> right -> cor = VERMELHO;
+			simpleRightRotationRb(root, isBrotherRb(element));
+			isBrotherRb(element) -> color = BLACK;
+			isBrotherRb(element) -> right -> color = RED;
 			
-			reajustar_rb(raiz, elemento);
+			readjustRb(root, element);
 
 			return;
 		}
 
 	//caso 5b
-	if(eh_filho_righteito_rb(elemento) && cor_rb(eh_irmao_rb(elemento)) == PRETO &&
-		(cor_rb(eh_irmao_rb(elemento) -> left) == PRETO || eh_irmao_rb(elemento) -> left == NULL) 		
-		&& cor_rb(eh_irmao_rb(elemento) -> right) == VERMELHO) {
+	if(isRightChildRb(element) && colorRb(isBrotherRb(element)) == BLACK &&
+		(colorRb(isBrotherRb(element) -> left) == BLACK || isBrotherRb(element) -> left == NULL) 		
+		&& colorRb(isBrotherRb(element) -> right) == RED) {
 		
-			rotacao_simples_leftuerda_rb(raiz, eh_irmao_rb(elemento));
-			eh_irmao_rb(elemento) -> cor = PRETO;
-			eh_irmao_rb(elemento) -> left -> cor = VERMELHO;
+			simpleLeftRotationRb(root, isBrotherRb(element));
+			isBrotherRb(element) -> color = BLACK;
+			isBrotherRb(element) -> left -> color = RED;
 			
-			reajustar_rb(raiz, elemento);
+			readjustRb(root, element);
 
 			return;
 	}
 
-	//caso 6: irmao preto e um dos sobrinhos vermelho
+	//caso 6: irmao BLACK e um dos sobrinhos RED
 
 	//caso 6a:
-	if(eh_filho_leftuerdo_rb(elemento) && 
-		cor_rb(eh_irmao_rb(elemento)) == PRETO && 
-		cor_rb(eh_irmao_rb(elemento) -> right) == VERMELHO) {
+	if(isLeftChildRb(element) && 
+		colorRb(isBrotherRb(element)) == BLACK && 
+		colorRb(isBrotherRb(element) -> right) == RED) {
 		
-		enum cor cor_original_father = cor_rb(elemento -> father);
+		enum color color_original_father = colorRb(element -> father);
 		
-		rotacao_simples_leftuerda_rb(raiz, elemento -> father);
+		simpleLeftRotationRb(root, element -> father);
 		
-		elemento -> father -> father -> cor = cor_original_father;
-		elemento -> father -> cor = PRETO;
-		tio_rb(elemento) -> cor = PRETO;		
+		element -> father -> father -> color = color_original_father;
+		element -> father -> color = BLACK;
+		uncleRb(element) -> color = BLACK;		
 		
-		retira_duplo_preto_rb(raiz, elemento);
+		removeDoubleBlackRb(root, element);
 
 		return;
 	}
 
 	//caso 6b
-	if(eh_filho_righteito_rb(elemento) && 
-		cor_rb(eh_irmao_rb(elemento)) == PRETO && 
-		cor_rb(eh_irmao_rb(elemento) -> left) == VERMELHO) {
+	if(isRightChildRb(element) && 
+		colorRb(isBrotherRb(element)) == BLACK && 
+		colorRb(isBrotherRb(element) -> left) == RED) {
 
-		enum cor cor_original_father = cor_rb(elemento -> father);
+		enum color color_original_father = colorRb(element -> father);
 		
-		rotacao_simples_righteita_rb(raiz, elemento -> father);
+		simpleRightRotationRb(root, element -> father);
 		
-		elemento -> father -> father -> cor = cor_original_father;
-		elemento -> father -> cor = PRETO;
-		tio_rb(elemento) -> cor = PRETO;		
+		element -> father -> father -> color = color_original_father;
+		element -> father -> color = BLACK;
+		uncleRb(element) -> color = BLACK;		
 		
-		retira_duplo_preto_rb(raiz, elemento);
+		removeDoubleBlackRb(root, element);
 
 		return;
 	}
 }
 
-void retira_duplo_preto_rb(rb *raiz, rb elemento) {
-	if(elemento == no_null) {
-		if(eh_filho_leftuerdo_rb(elemento))
-			elemento->father->left = NULL;
+void removeDoubleBlackRb(rb *root, rb element) {
+	if(element == no_null) {
+		if(isLeftChildRb(element))
+			element->father->left = NULL;
 		else
-			elemento->father->right = NULL;
+			element->father->right = NULL;
 	} else {
-		elemento->cor = PRETO;
+		element->color = BLACK;
 	}
 }
 
 
-void ajustar_rb(rb* raiz, rb novo) {
+void adjustRb(rb* root, rb new) {
 	
-	//se o father e o elemento forem vermelhos, precisa ajustar_rb
-	while(cor_rb(novo->father) == VERMELHO && cor_rb(novo) == VERMELHO) {
+	//se o father e o element forem REDs, precisa adjustRb
+	while(colorRb(new->father) == RED && colorRb(new) == RED) {
 		//caso 1
-		if(cor_rb(tio_rb(novo)) == VERMELHO){
-			//tornando o tio_rb e father do elemento inseido preto
-			tio_rb(novo)->cor = PRETO;
-			novo->father->cor = PRETO;
-			novo->father->father->cor = VERMELHO;
+		if(colorRb(uncleRb(new)) == RED){
+			//tornando o uncleRb e father do element inseido BLACK
+			uncleRb(new)->color = BLACK;
+			new->father->color = BLACK;
+			new->father->father->color = RED;
 
-			//agr eu quero que verifique se o avo do elemento inserido
-			//que se tornou vermelho, está na cor correta, ent eu atualizo
-			novo = novo->father->father;
+			//agr eu quero que verifique se o avo do element inserido
+			//que se tornou RED, está na color colorreta, ent eu atualizo
+			new = new->father->father;
 
 			continue;
 		}
 		//case 2a: rotacao simples righteita
-		if(eh_filho_leftuerdo_rb(novo) && eh_filho_leftuerdo_rb(novo->father)) {
-			//rotacao simples passando a raiz e o avo do elemento
-			rotacao_simples_righteita_rb(raiz, novo->father->father);
-			novo->father->cor = PRETO;
-			novo->father->right->cor = VERMELHO;
+		if(isLeftChildRb(new) && isLeftChildRb(new->father)) {
+			//rotacao simples passando a root e o avo do element
+			simpleRightRotationRb(root, new->father->father);
+			new->father->color = BLACK;
+			new->father->right->color = RED;
 
 			continue;
 		}
 		//caso 2b: rotacao simples leftuerda
-		if(eh_filho_righteito_rb(novo) && eh_filho_righteito_rb(novo->father)) {
-			rotacao_simples_leftuerda_rb(raiz, novo->father->father);
-			novo->father->cor = PRETO;
-			novo->father->left->cor = VERMELHO;
+		if(isRightChildRb(new) && isRightChildRb(new->father)) {
+			simpleLeftRotationRb(root, new->father->father);
+			new->father->color = BLACK;
+			new->father->left->color = RED;
 
 			continue;
 		}
 		//caso 3a: rotacao dupla righteita
-		if(eh_filho_righteito_rb(novo) && eh_filho_leftuerdo_rb(novo->father)) {
-			rotacao_simples_leftuerda_rb(raiz, novo->father);
-			rotacao_simples_righteita_rb(raiz, novo->father);
-			novo->right->cor = VERMELHO;
-			novo->left->cor = VERMELHO;
-			novo->cor = PRETO;
+		if(isRightChildRb(new) && isLeftChildRb(new->father)) {
+			simpleLeftRotationRb(root, new->father);
+			simpleRightRotationRb(root, new->father);
+			new->right->color = RED;
+			new->left->color = RED;
+			new->color = BLACK;
 
 			continue;
 		}
 		//caso 3b: rotacao dupla leftuerda
-		if(eh_filho_leftuerdo_rb(novo) && eh_filho_righteito_rb(novo->father)) {
-            rotacao_simples_righteita_rb(raiz, novo->father);
-            rotacao_simples_leftuerda_rb(raiz, novo->father);
-            novo->right->cor = VERMELHO;
-            novo->left->cor = VERMELHO;
-            novo->cor = PRETO;
+		if(isLeftChildRb(new) && isRightChildRb(new->father)) {
+            simpleRightRotationRb(root, new->father);
+            simpleLeftRotationRb(root, new->father);
+            new->right->color = RED;
+            new->left->color = RED;
+            new->color = BLACK;
             
             continue;
 
 		}
 	}
-	//Após todas as correções a raiz pode ter ficado na cor vermelha, portanto passamos ela novamente para cor preta
-	(*raiz)->cor = PRETO;
+	//Após todas as colorreções a root pode ter ficado na color vermelha, portanto passamos ela novamente para color preta
+	(*root)->color = BLACK;
 }
 
 /*
@@ -413,16 +426,16 @@ void ajustar_rb(rb* raiz, rb novo) {
 */
 
 
-void rotacao_simples_righteita_rb(rb *raiz, rb pivo) {
+void simpleRightRotationRb(rb *root, rb pivo) {
 	rb p, u, t2;
 	p = pivo;
 	u = pivo->left;
 	t2 = u->right;
 
-	//para fazer a ligacao da raiz a sub-arvore com seu father,
+	//para fazer a ligacao da root a sub-arvore com seu father,
 	//eh preciso saber se o pivo era um filho leftuerdo ou righteito
 
-	int posicao_pivo_left = eh_filho_leftuerdo_rb(pivo);
+	int posicao_pivo_left = isLeftChildRb(pivo);
 	//pois ele precisa ser inserido em um dos lados do father
 
 	//trocando o lado do t2
@@ -432,20 +445,20 @@ void rotacao_simples_righteita_rb(rb *raiz, rb pivo) {
 	if(t2 != NULL) 
 		t2->father = pivo;
 
-	//agora fazendo a rotação dos elementos restantes
+	//agora fazendo a rotação dos elements restantes
 	u->right = pivo;
 	u->father = p->father;
 	p->father = u;
 
-	p->cor = VERMELHO;
-	u->cor = PRETO;
+	p->color = RED;
+	u->color = BLACK;
 
-	//testando se u eh raiz, pois se for, a raiz da arvore recebe ele
-	if(eh_raiz_rb(u))
-		*raiz = u;
+	//testando se u eh root, pois se for, a root da arvore recebe ele
+	if(isRootRb(u))
+		*root = u;
 
 	//caso n seja, vamos descobrir se o pivo (valor que agr o u ocupa o lugar)
-	//era filho leftuerdo ou n para posicioná-lo corretamente
+	//era filho leftuerdo ou n para posicioná-lo colorretamente
 	//em relação ao father
 	else {
 		if(posicao_pivo_left)
@@ -463,13 +476,13 @@ void rotacao_simples_righteita_rb(rb *raiz, rb pivo) {
 	 	(t2)   (t3)		  (t1)  (t2) 
   
 */
-void rotacao_simples_leftuerda_rb(rb *raiz, rb pivo) {
+void simpleLeftRotationRb(rb *root, rb pivo) {
 	rb p, u, t2;
 	p = pivo;
 	u = p->right;
 	t2 = u->left;
 
-	int posicao_pivo_right = eh_filho_righteito_rb(pivo);
+	int posicao_pivo_right = isRightChildRb(pivo);
 
 	p->right = t2;
 
@@ -480,11 +493,11 @@ void rotacao_simples_leftuerda_rb(rb *raiz, rb pivo) {
 	u->father = p->father;
 	p->father = u;
 
-	p->cor = VERMELHO;
-	u->cor = PRETO;
+	p->color = RED;
+	u->color = BLACK;
 	
-	if(eh_raiz_rb(u))
-		*raiz = u;
+	if(isRootRb(u))
+		*root = u;
 	else {
 		if(posicao_pivo_right)
 			u->father->right = u;
@@ -493,27 +506,26 @@ void rotacao_simples_leftuerda_rb(rb *raiz, rb pivo) {
 	}
 }
 
-void preorder_rb (rb raiz) {
-  if (raiz != NULL) {
-      imprimir_elemento_rb(raiz);
-      preorder_rb (raiz->left);
-      preorder_rb (raiz->right);
+void preOrderRb (rb root) {
+  if (root != NULL) {
+      printElementRb(root);
+      preOrderRb (root->left);
+      preOrderRb (root->right);
     }
 }
 
-int buscar_indice_rb(rb raiz, char* servings) {
-	if(servings != NULL && raiz != NULL) {
-		int cmp = strcmp(servings, raiz->data->servings);
-		if(cmp == 0) {
-			return raiz->data->index;
-		}
-		else {
-			if(cmp > 0)
-				return buscar_indice_rb(raiz->right, servings);
-			else 
-				return buscar_indice_rb(raiz->left, servings);
-		}
-	} else {
-		return -1;
-	}
+int searchIndexRb(rb root, char* difficulty) {
+    if (root == NULL) {
+        return -1; // Retorna -1 se a árvore estiver vazia
+    }
+    
+    int cmp = strcmp(difficulty, root->data->difficulty);
+    
+    if (cmp == 0) {
+        return root->data->index; // Retorna o índice se a dificuldade for encontrada
+    } else if (cmp < 0) {
+        return searchIndexRb(root->left, difficulty); // Procura na subárvore esquerda se a dificuldade for menor
+    } else {
+        return searchIndexRb(root->right, difficulty); // Procura na subárvore direita se a dificuldade for maior
+    }
 }

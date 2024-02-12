@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 typedef struct avlIndex {
-	int difficulty;
+	int servings;
 	int index; //posição em bytes do primeiro byte do regsitro no arquivo de dados
 }avlIndex;
 
@@ -15,27 +15,27 @@ typedef struct avlNode {
 
 typedef avlNode* avl;
 
-avlIndex* inicializar_indice_avl(int indice, int codigo);
+avlIndex* initializeIndexAvl(int index, int servings);
 
-avl adicionar_avl(avl a, avlIndex *v, int *cresceu);
+avl insertAvl(avl a, avlIndex *v, int *grow);
 
-int buscar_indice_avl(avl raiz, int codigo);
+int searchIndexAvl(avl root, int servings);
 
-avl remover_elemento_avl(avl a, int v, int *diminuiu);
+avl removeElementAvl(avl a, int v, int *down);
 
-avl rotacao_avl(avl a);
+avl rotationAvl(avl a);
 
-avl rotacao_simples_direita_avl(avl a);
+avl simpleRightRotationAvl(avl a);
 
-avl rotacao_simples_esquerda_avl(avl a);
+avl simpleLeftRotationAvl(avl a);
 
-avl rotacao_dupla_direita_avl(avl a);
+avl doubleRightRotationAvl(avl a);
 
-avl rotacao_dupla_esquerda_avl(avl a);
+avl doubleLeftRotationAvl(avl a);
 
-void pre_order_avl(avl raiz);
-void pos_order_avl(avl raiz);
-void in_order_avl(avl raiz);
-void imprimir_elemento_avl(avl raiz);
+void preOrderAvl(avl root);
+void posOrderAvl(avl root);
+void inOrderAvl(avl root);
+void printElementAvl(avl root);
 
 #endif

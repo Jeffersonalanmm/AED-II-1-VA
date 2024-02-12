@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include "avl.h"
 
-int altura_avl(avl a) {
+int heightAvl(avl a) {
 	if(a == NULL) {
 		return 0;
 	} else {
-		int left = altura_avl(a->left);
-		int right = altura_avl(a->right);
+		int left = heightAvl(a->left);
+		int right = heightAvl(a->right);
 	
 		if(left > right)
 			return left + 1;
@@ -17,34 +17,32 @@ int altura_avl(avl a) {
 	}
 }
 
-avlIndex* inicializar_indice_avl(int index, int difficulty)  {
+avlIndex* initializeIndexAvl(int index, int servings)  {
 	avlIndex *novo = (avlIndex*) malloc(sizeof(avlIndex));
 	novo->index = index;
-	novo->difficulty = difficulty;
+	novo->servings = servings;
 	return novo;
 }
 
-int buscar_indice_avl(avl raiz, int difficulty) {
-	if(raiz != NULL) {
-		if(raiz->data->difficulty == difficulty) {
-			return raiz->data->index;
-		}
-		else {
-			if(raiz->data->difficulty > difficulty)
-				return buscar_indice_avl(raiz->left, difficulty);
-			else 
-				return buscar_indice_avl(raiz->right, difficulty);
-		}
-	} else {
-		return -1;
-	}
+int searchIndexAvl(avl root, int servings) {
+    if (root == NULL) {
+        return -1; // Retorna -1 se a árvore estiver vazia
+    }
+    
+    if (servings == root->data->servings) {
+        return root->data->index; // Retorna o índice se o número de porções for encontrado
+    } else if (servings < root->data->servings) {
+        return searchIndexAvl(root->left, servings); // Procura na subárvore esquerda se o número de porções for menor
+    } else {
+        return searchIndexAvl(root->right, servings); // Procura na subárvore direita se o número de porções for maior
+    }
 }
 
 
-avl adicionar_avl(avl a, avlIndex *v, int *cresceu) {
-    if(cresceu == NULL) {
+avl insertAvl(avl a, avlIndex *v, int *grow) {
+    if(grow == NULL) {
         int c = 1;
-        cresceu = &c;
+        grow = &c;
     }
 	//caso base a raiz eh vazia, ent cria um novo no
 	if(a == NULL) {
@@ -53,36 +51,36 @@ avl adicionar_avl(avl a, avlIndex *v, int *cresceu) {
 		new->left = NULL;
 		new->right = NULL;
 		new->fb = 0;
-		*cresceu = 1;
+		*grow = 1;
 
 		return new;
 		
 	} //caso não esteja, buscar onde inserir
 	else {
 		//se o valor for maior que a raiz, add elemento a righteita
-		if(v->difficulty > a->data->difficulty) {
-			a->right = adicionar_avl(a->right, v, cresceu);
+		if(v->servings > a->data->servings) {
+			a->right = insertAvl(a->right, v, grow);
 
 			//calcular os reajustes do fator de balanco
-			if(*cresceu) {
+			if(*grow) {
 				switch(a->fb){
 					//arvore totalmente balancada e agr tem um fator no lado righteito
 					case 0:
 						a->fb = 1;
-					   *cresceu = 1;
+					   *grow = 1;
 					    break;
 					
 					//arvore tava pendendo pra leftuerda, agr ficou equilibrada
 					case -1:
 						a->fb = 0;
-						*cresceu = 0;
+						*grow = 0;
 						break;
 
 					//caso o fb no lado righteito 1 e agr se torne 2, logo precisa ser balanceada
 					case 1:
 						//a->fb = 2;
-						*cresceu = 0; 
-						a = rotacao_avl(a);//como pendeu pra righteita, rota para leftuerda
+						*grow = 0; 
+						a = rotationAvl(a);//como pendeu pra righteita, rota para leftuerda
 						break;
 
 				}
@@ -90,27 +88,27 @@ avl adicionar_avl(avl a, avlIndex *v, int *cresceu) {
 		} 
 		else {
 			//elemento menor que a raiz, add elemento leftuerda
-			a->left = adicionar_avl(a->left, v, cresceu);
+			a->left = insertAvl(a->left, v, grow);
 
 			//calcular os reajustes do fator de balanco
-			if(*cresceu) {
+			if(*grow) {
 				switch(a->fb) {
 					//arvore balanceada e agr pende 1 para righteita
 					case 0:
 						a->fb = -1;
-						*cresceu = 1;
+						*grow = 1;
 						break;
 					//arvore pende um para leftuerda e agr equilibra
 					case 1:
 						a->fb = 0;
-						*cresceu = 0;
+						*grow = 0;
 						break;
 
 					//pendia 1 para leftuerda e agr desbalanceia
 					case -1:
 						//a->fb = -2;
-						*cresceu = 0;
-						a = rotacao_avl(a);
+						*grow = 0;
+						a = rotationAvl(a);
 						break;
 
 				}
@@ -119,158 +117,99 @@ avl adicionar_avl(avl a, avlIndex *v, int *cresceu) {
 	}
 	return a;
 }
-avl remover_elemento_avl(avl a, int v, int *diminuiu) {
-//caso base: raiz vazia
-	if(a == NULL) {
-        *diminuiu = 0;
+avl removeElementAvl(avl a, int v, int *down) {
+    if (a == NULL) {
+        *down = 0;
         return a;
     }
 
-    if(diminuiu == NULL) {
+    if (down == NULL) {
         int d = 0;
-        diminuiu = &d;
+        down = &d;
     }
 
-  //valor encontrado, hora de remover
-  	if(a->data->difficulty == v) {
-    		if(a->left == NULL && a->right == NULL) {
-    			free(a);
-    			*diminuiu = 1;
-    			return NULL;
-    		}
-    		//dois filhos
-    		if(a->left != NULL && a->right != NULL) {
-    			avl aux = a->left;
-    			//procura o sucesso para substituir o valor a ser removido
-    			while(aux->right != NULL)
-    				aux = aux->right;
+    // Um ou nenhum filho
+    if (v == a->data->servings) {
+        if (a->left == NULL || a->right == NULL) {
+            avl temp = a->left ? a->left : a->right;
+            if (temp == NULL) {
+                temp = a;
+                a = NULL;
+            } else {
+                *a = *temp;
+            }
+            free(temp);
+            *down = 1;
+            return a;
+        }
+        // Dois filhos
+        avl aux = a->left;
+        while (aux->right != NULL)
+            aux = aux->right;
 
-    			a->data = aux->data;
+        a->data = aux->data;
+        a->left = removeElementAvl(a->left, aux->data->servings, down);
 
-    			a->left = remover_elemento_avl(a->left, aux->data->difficulty, diminuiu);
+        // Verifica se a altura da subárvore esquerda foi alterada
+        if (*down) {
+            switch (a->fb) {
+                case 0:
+                    a->fb = 1;
+                    *down = 0;
+                    break;
+                case -1:
+                    a->fb = 0;
+                    *down = 1;
+                    break;
+                case 1:
+                    *down = 1;
+                    a = rotationAvl(a);
+            }
+        }
+        return a;
+    }
 
-                switch(a->fb){
-                        case 0:
-                            a->fb = 1;
-                            *diminuiu = 0;
-                            break;
-                        case -1:
-                            a->fb = 0;
-                            *diminuiu = 1;
-                            break;
-                        case 1:
-                            *diminuiu = 1;
-                            a = rotacao_avl(a);
-                    }
-                    return a;
+    // Remoção na subárvore esquerda ou direita
+    if (v < a->data->servings) {
+        a->left = removeElementAvl(a->left, v, down);
+    } else {
+        a->right = removeElementAvl(a->right, v, down);
+    }
 
-    		}
-    		else { //caso a raiz so tenha um filho
-    			avl aux;
-    			*diminuiu = 1;
-    			if(a->right != NULL && a->left == NULL){
-    				aux = a->right;
-    			}
-    			else {
-    				aux = a->left;
-    				
-    			}
-    			free(a);
-    			return aux;
-    		} 
-		}
-
-
-		else {
-			if(v > a->data->difficulty) {
-		    		a->right = remover_elemento_avl(a->right, v, diminuiu);
-
-		    		if(*diminuiu) 
-		    		{
-		    			switch(a->fb)
-		    			{	
-		    				//raiz pendendo leftuerda, agr que removeu ela, gerou -2. Ou seja
-		    					//rotacao_avl
-		    				case -1:
-		    					a->fb = -2;
-		    					if(a->left->fb == 0)
-		    					{
-		    						*diminuiu = 0;
-		    					}
-		    					else { 
-		    						*diminuiu = 1; 
-		    					}
-		    					a = rotacao_avl(a);
-		    					break;
-
-		    				//raiz balanceadaaaaaaaa, agr pende pra leftuerda
-		    				case 0:
-		    					a->fb = -1;
-		    					*diminuiu = 0;
-		    					break;
-
-		    				//
-		    				case 1:
-		    					a->fb = 0;
-		    					*diminuiu = 1;
-		    					break;
-		    			}
-		    		}
-		    	}
-		    else {
-		    		a->left = remover_elemento_avl(a->left, v, diminuiu);
-
-		    		if(*diminuiu) 
-		    		{
-		    			switch(a->fb) 
-		    			{
-		    				//raiz estava pendendo pra leftuerda, agr equilibrou
-		    				case -1:
-		    					a->fb = 0;
-		    					*diminuiu = 1;
-		    					break;
-
-		    				//a raiz estava balanceada, apos remover ela passa a pendera righteita
-		    				case 0:
-		    					a->fb = 1;
-		    					*diminuiu = 0;
-		    					break;
-
-		    				//a raiz pendia para righteita, apos remover outro na leftuerda, ela passa
-		    					//a a pender 2. Logo precisa ser rotacionada
-		    				case 1:
-		    					a->fb = 2;
-		    					if(a->right->fb == 0){
-		    						*diminuiu = 0;
-		    					}
-		    					else { *diminuiu = 1; }
-
-		    					a = rotacao_avl(a);//rotacao_avl leftuerda
-		    					break;
-		    			}
-		    		}
-		    	}
-		}
-		    	//valor a ser removido maior que a raiz
-    	
-	return a;
-
+    // Atualiza o fator de balanceamento
+    if (*down) {
+        switch (a->fb) {
+            case 0:
+                a->fb = 1;
+                *down = 0;
+                break;
+            case -1:
+                a->fb = 0;
+                *down = 1;
+                break;
+            case 1:
+                *down = 1;
+                a = rotationAvl(a);
+        }
+    }
+    return a;
 }
+
 //chamar todas rotacoes
 //e verificar qual o desbalanceamento atraves dos ifs
 //e ajustar para cada caso especifico
-avl rotacao_avl(avl a){
+avl rotationAvl(avl a){
     if (a->fb > 0){
         if(a->right->fb >= 0){
-            return rotacao_simples_leftuerda_avl(a);
+            return simpleLeftRotationAvl(a);
         }else{
-            return rotacao_dupla_leftuerda_avl(a);
+            return doubleLeftRotationAvl(a);
         }
     }else{
         if (a->left->fb <= 0){
-            return rotacao_simples_righteita_avl(a);
+            return simpleRightRotationAvl(a);
         }else{
-            return rotacao_dupla_righteita_avl(a);
+            return doubleRightRotationAvl(a);
         }
 
     }
@@ -285,7 +224,7 @@ avl rotacao_avl(avl a){
   
 */
 
-avl rotacao_simples_leftuerda_avl(avl a) {
+avl simpleLeftRotationAvl(avl a) {
 	//quem ta desbalanceado eh p
 	// fb(p) == 2, fb(u) == 1
 	avl p, u;
@@ -311,7 +250,7 @@ avl rotacao_simples_leftuerda_avl(avl a) {
 */
 
 
-avl rotacao_simples_righteita_avl(avl a) {
+avl simpleRightRotationAvl(avl a) {
 	//fb(p) == -2, fb(u) == -1
 	avl p, u;
 
@@ -355,7 +294,7 @@ avl rotacao_simples_righteita_avl(avl a) {
     t2  t3              t3  t4
  */
 
-avl rotacao_dupla_leftuerda_avl(avl a){
+avl doubleLeftRotationAvl(avl a){
  	//fb(p) = 2, fb(u) = -1
     avl p, u, v;
 
@@ -404,7 +343,7 @@ avl rotacao_dupla_leftuerda_avl(avl a){
  */
 
 
-avl rotacao_dupla_righteita_avl(avl a) {
+avl doubleRightRotationAvl(avl a) {
 	//fb(p) = -2, fb(u) = 1
 	avl p, u, v;
 
@@ -445,33 +384,33 @@ avl rotacao_dupla_righteita_avl(avl a) {
     return v;
 }
 
-void pre_order_avl(avl raiz) {
+void preOrderAvl(avl raiz) {
 	if(raiz != NULL) {
-		imprimir_elemento_avl(raiz);
-		pre_order_avl(raiz->left);
-		pre_order_avl(raiz->right);
+		printElementAvl(raiz);
+		preOrderAvl(raiz->left);
+		preOrderAvl(raiz->right);
 	}
 }
 
-void pos_order_avl(avl raiz) {
+void posOrderAvl(avl raiz) {
 	if(raiz != NULL) {
-		pos_order_avl(raiz->left);
-		pos_order_avl(raiz->right);
-		imprimir_elemento_avl(raiz);
+		posOrderAvl(raiz->left);
+		posOrderAvl(raiz->right);
+		printElementAvl(raiz);
 	}
 }
 
-void in_order_avl(avl raiz) {
+void inOrderAvl(avl raiz) {
 	if(raiz != NULL) {
-		in_order_avl(raiz->left);
-		imprimir_elemento_avl(raiz);
-		in_order_avl(raiz->right);
+		inOrderAvl(raiz->left);
+		printElementAvl(raiz);
+		inOrderAvl(raiz->right);
 	}
 }
 
-void imprimir_elemento_avl(avl raiz) {
+void printElementAvl(avl raiz) {
 	if(raiz != NULL) {
-		printf("%d | ", raiz->data->difficulty);
+		printf("%d | ", raiz->data->servings);
 
 	}
 }

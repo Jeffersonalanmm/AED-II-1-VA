@@ -3,28 +3,28 @@
 #include <stdlib.h>
 
 typedef struct bstIndex {
-	char* recipe;
+	char* name;
 	int index; //posição em bytes do primeiro byte do regsitro no arquivo de dados
 }bstIndex;
 
 typedef struct bstNode {
 	bstIndex *data;
 	struct bstNode *left, *right;
-} no_bst;
+} bstNode;
 
 typedef bstNode * bst;
 
-bstIndex * inicializarIndiceBst(int indice, char* nome);
-bst adicionarBst(bstIndex *valor, bst raiz);
-int altura(bst raiz);
-int maior(int a, int b);
-bstIndex * maior_elemento_bst(bst raiz);
-bstIndex * menor_elemento_bst(bst raiz);
-void pre_order_bst(bst raiz);
-void pos_order_bst(bst raiz);
-void in_order_bst(bst raiz);
-bst remover_bst(bst raiz, char* nome);
-void imprimir_elemento_bst(bst raiz);
-int buscaIndiceBst(bst raiz, char* nome);
+bstIndex * initializeIndexBst(int index, char* name);
+bst insertBst(bstIndex *value, bst root);
+int height(bst root);
+int max(int a, int b);
+bstIndex * maxElementBst(bst root);
+bstIndex * minElementBst(bst root);
+void preOrderBst(bst root);
+void posOrderBst(bst root);
+void inOrderBst(bst root);
+bst removeBst(bst root, char* name);
+void printElementBst(bst root);
+int searchElementBst(bst root, char* name);
 
 #endif

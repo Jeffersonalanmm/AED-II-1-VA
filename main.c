@@ -1,121 +1,121 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "tabela/tabela.h"
-#include "tabela/tabela.c"
-#include "trees/bst.h"
-#include "trees/avl.h"
-#include "trees/rb.h"
+#include "./tabela/tabela.h"
+#include "./tabela/tabela.c"
+#include "./trees/bst.h"
+#include "./trees/avl.h"
+#include "./trees/rb.h"
 
 int op_menu;
 
 int menu();
-int menu_buscar();
-int menu_listar();
-int menu_remover();
-int voltar();
-void limpar_tela();
+int menuSearch();
+int menuList();
+int menuRemove();
+int back();
+void cleanScreen();
 
 int main(int argc, char* argv[]) {
 
-	table tab;
-	int indice, codigo;
-	data pokemon;
+	table table;
+	int index, servings;
+	data recipe;
 
-	char nome[50], *descricao =  (char*) malloc(sizeof(char)*256);
+	char name[50], *difficulty =  (char*) malloc(sizeof(char)*256);
 
 
-	if(inicializarTabela(&tab)) {
+	if(initializeTable(&table)) {
 		do{
 			switch(menu()) {
-				int valor;
+				int value;
 				case 1:
-					printf("Insira os dados do Pokemon\n\n");
-					if(inserir_pokemon(&tab, ler_dados())) 
-						printf("Sucesso ao inserir, argh fez o basico!\n");
+					printf("Enter recipe details\n\n");
+					if(insertTable(&table, readData())) 
+						printf("Exit to insert!\n");
 					else 
-						printf("pokemon nao inserido\n");
+						printf("Recipe isn't inserted!\n");
 					break;
-					voltar();
+					back();
 				case 2:
 					while (1) {
-						switch (menu_buscar()) {
+						switch (menuSearch()) {
 							case 1:
-								printf("Buscar Pokemon por nome\n\n");
-								printf("Nome: ");
-								fgets(nome, sizeof(nome), stdin);
-								tirar_enter(nome);
-								limpar_tela();
-								indice = buscaIndiceBst(tab.indiceBst, nome);
-								if(indice >= 0) {
-									pokemon = buscar_pokemon(tab.arquivo_dados, indice);
-									printf("Buscar Pokemon por nome\n\n");
-									if(!pokemon.removido)
-										imprimir_elemento(pokemon);
+								printf("Search recipe by name\n\n");
+								printf("Name: ");
+								fgets(name, sizeof(name), stdin);
+								removeEnter(name);
+								cleanScreen();
+								index = searchIndexBst(table.indexBST, name);
+								if(index >= 0) {
+									recipe = searchData(table.dataFile, index);
+									printf("Search recipe by name\n\n");
+									if(!recipe.removido)
+										printData(recipe);
 									else
 										printf("Erro ao buscar\n");
 								} else
-									printf("Nao encontrado\n");
+									printf("Recipe not found\n");
 								break;
 							case 2:
-								printf("Buscar Pokemon por codigo\n\n");
-								printf("Codigo: ");
-								scanf("%d", &codigo);
+								printf("Search recipe by servings\n\n");
+								printf("Servings: ");
+								scanf("%d", &servings);
 								while (getchar() != '\n');
-								limpar_tela();
-								indice = buscar_indice_avl(tab.indice_avl, codigo);
-								if(indice >= 0) {
-									pokemon = buscar_pokemon(tab.arquivo_dados, indice);
-									printf("Buscar Pokemon por codigo\n\n");
-									if(!pokemon.removido)
-										imprimir_elemento(pokemon);
+								cleanScreen();
+								index = searchIndexAvl(table.indexAVL, servings);
+								if(index >= 0) {
+									recipe = searchData(table.dataFile, index);
+									printf("Search recipe by servings\n\n");
+									if(!recipe.removido)
+										printData(recipe);
 									else
 										printf("Erro ao buscar");
 								} else
-									printf("Nao encontrado\n");
+									printf("Recipe not found.\n");
 									break;
 							case 3:
-								printf("Buscar Pokemon pela descricao\n\n");
-								printf("Descricao: ");
-								fgets(descricao, 255, stdin);
-								tirar_enter(descricao);
-								limpar_tela();
-								indice = buscar_indice_rb(tab.indice_rb, descricao);
-								if(indice >= 0) {
-									pokemon = buscar_pokemon(tab.arquivo_dados, indice);
-									printf("Buscar Pokemon pela descricao\n\n");
-									if(!pokemon.removido)
-										imprimir_elemento(pokemon);
+								printf("Search recipe by difficulty\n\n");
+								printf("Difficulty: ");
+								fgets(difficulty, 255, stdin);
+								removeEnter(difficulty);
+								cleanScreen();
+								index = searchIndexRb(table.indexRB, difficulty);
+								if(index >= 0) {
+									recipe = searchData(table.dataFile, index);
+									printf("Buscar Pokemon pela difficulty\n\n");
+									if(!recipe.removido)
+										printData(recipe);
 									else
 										printf("Erro ao buscar");
 								} else
-									printf("Nao encontrado\n");
+									printf("Recipe not found.\n");
 								break;
 							case 4:
-								goto fim_buscar;
+								goto endSearch;
 								break;
 								
 							default:		
-								printf("Opcao invalida!\n");
+								printf("Invalid option!\n");
 								break;
 							}
-							voltar();
+							back();
 					}
-					fim_buscar:;
+					endSearch:;
 					break;
 					case 3 :
 						while (1) {
-							switch (menu_listar())	{
+							switch (menuList())	{
 							case 1:
-								printf("Listando Pokemon por nome \n\n");
-								listar_por_nome(tab.arquivo_dados, tab.indiceBst);
+								printf("Listing recipe by name \n\n");
+								printByRecipe(table.dataFile, table.indexBST);
 								break;
 							case 2:
-								printf("Listando Pokemon por codigo \n\n");
-								listar_por_codigo(tab.arquivo_dados, tab.indice_avl);
+								printf("Listing recipe by servings \n\n");
+								printByServings(table.dataFile, table.indexAVL);
 								break;
 							case 3:
-								printf("Listando Pokemon por descricao\n\n");
-								listar_por_descricao(tab.arquivo_dados, tab.indice_rb);
+								printf("Listing recipe by difficulty\n\n");
+								printByDifficulty(table.dataFile, table.indexRB);
 								break;
 							case 4:
 								goto fim_listar;
@@ -123,62 +123,62 @@ int main(int argc, char* argv[]) {
 							default:
 								break;
 							}
-							voltar();
+							back();
 						}
 						fim_listar:;
 						break;
 					case 4:
 						while (1) {
-							switch (menu_remover()) {
+							switch (menuRemove()) {
 								case 1:
-									printf("Remover por nome: ");
-									fgets(nome, sizeof(nome), stdin);
-									tirar_enter(nome);
-									indice = buscaIndiceBst(tab.indiceBst, nome);
-									if(indice >= 0) {
-										remover_pokemon(&tab, indice);
+									printf("Remove recipe by name: ");
+									fgets(name, sizeof(name), stdin);
+									removeEnter(name);
+									index = searchIndexBst(table.indexBST, name);
+									if(index >= 0) {
+										removeData(&table, index);
 									} else
-										printf("Nao encontrado\n");
+										printf("Recipe not found.\n");
 									break;
 
 								case 2:
-									printf("Remover por codigo: ");
-									scanf("%d", &codigo);
-									indice = buscar_indice_avl(tab.indice_avl, codigo);
-									if(indice >= 0) {
-										remover_pokemon(&tab, indice);
+									printf("Remove by servings: ");
+									scanf("%d", &servings);
+									index = searchIndexAvl(table.indexAVL, servings);
+									if(index >= 0) {
+										removeData(&table, index);
 									} else
-										printf("Nao encontrado\n");
+										printf("Recipe not found.\n");
 									break;
 								case 3:
-									printf("Remover por descricao: ");
-									fgets(descricao, 255, stdin);
-									tirar_enter(descricao);
-									indice = buscar_indice_rb(tab.indice_rb, descricao);
-									if(indice >= 0) {
-										remover_pokemon(&tab, indice);
+									printf("Remove by difficulty: ");
+									fgets(difficulty, 255, stdin);
+									removeEnter(difficulty);
+									index = searchIndexRb(table.indexRB, difficulty);
+									if(index >= 0) {
+										removeData(&table, index);
 									} else
-										printf("Nao encontrado\n");
+										printf("Recipe not found.\n");
 									break;
 								case 4:
-									goto fim_remover;
+									goto endRemove;
 									break;
 								default:
-									printf("Opcao invalida");
+									printf("Invalid option.");
 									break;
 								}
-								voltar();
+								back();
 						}
-						fim_remover:;
+						endRemove:;
 					break;
 
 					case 5:
-						finalizar(&tab);
+						finalizar(&table);
 						exit(1);
 					break;
 
 					default:
-						printf("Opcao invalida");
+						printf("Invalid option.");
 			}
 
 		} while(1);
@@ -187,68 +187,68 @@ int main(int argc, char* argv[]) {
 }
 
 int menu() {
-	limpar_tela();
-	printf("|----Sistema de Armazenamento de Pokemons----|\n");
-	printf("1 - Inserir\n");
-	printf("2 - Buscar\n");
-	printf("3 - Listar\n");
-	printf("4 - Remover\n");
-	printf("5 - Sair\n");
+	cleanScreen();
+	printf("|----Culinary recipe storage system----|\n");
+	printf("1 - Insert\n");
+	printf("2 - Search\n");
+	printf("3 - List\n");
+	printf("4 - Remove\n");
+	printf("5 - Exit\n");
 	printf("Opcao : ");
 	scanf("%d", &op_menu);
-	limpar_tela();
+	cleanScreen();
 	getchar();
 	return op_menu;
 }	
 
-int menu_buscar() {
-	limpar_tela();
-	printf("----Buscar----\n");
-	printf("1 - Por nome: \n");
-	printf("2 - Por codigo: \n");
-	printf("3 - Por descricao: \n");
-	printf("4 - Voltar para o menu principal\n");
-	printf("Opcao : ");
+int menuSearch() {
+	cleanScreen();
+	printf("----Search----\n");
+	printf("1 - by name: \n");
+	printf("2 - by servings: \n");
+	printf("3 - by difficulty: \n");
+	printf("4 - return to main menu\n");
+	printf("Option : ");
 	scanf("%d", &op_menu);
-	limpar_tela();
+	cleanScreen();
 	getchar();
 	return op_menu;
 }
 
-int menu_listar() {
-	limpar_tela();
-	printf("----Listagem---\n");
-	printf("1 - Listagem ordenada por nome\n");
-	printf("2 - Listagem ordenada por codigo\n");
-	printf("3 - Listagem ordenada por descricao\n");
-	printf("4 - Voltar para o menu principal\n");
-	printf("Opcao : ");
+int menuList() {
+	cleanScreen();
+	printf("----Listing---\n");
+	printf("1 - by name\n");
+	printf("2 - by servings\n");
+	printf("3 - by difficulty\n");
+	printf("4 - Return to main menu\n");
+	printf("Option : ");
 	scanf("%d", &op_menu);
-	limpar_tela();
+	cleanScreen();
 	getchar();
 	return op_menu;
 }
 
-int menu_remover() {
-	limpar_tela();
-	printf("----Remocao---\n");
-	printf("1 - Por nome: \n");
-	printf("2 - Por codigo: \n");
-	printf("3 - Por descricao: \n");
-	printf("4 - Voltar para o menu principal\n");
-	printf("Opcao : ");
+int menuRemove() {
+	cleanScreen();
+	printf("----Removal---\n");
+	printf("1 - by name\n");
+	printf("2 - by servings\n");
+	printf("3 - by difficulty\n");
+	printf("4 - Return to main menu\n");
+	printf("Option : ");
 	scanf("%d", &op_menu);
-	limpar_tela();
+	cleanScreen();
 	getchar();
 	return op_menu;
 }
 
-int voltar() {
+int back() {
 	printf("\n\n");
-	printf("Digite qualquer tecla para voltar: ");
+	printf("type any key to continue: ");
 	while(!getchar());
 }
 
-void limpar_tela(){
-	system("clear");
+void cleanScreen(){
+	system("cls");
 }

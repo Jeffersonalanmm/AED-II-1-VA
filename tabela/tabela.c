@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include "tabela.h"
@@ -6,11 +7,11 @@
 int initializeTable(table *table) {
 	table->dataFile = fopen("dados.dat", "r+b");
 	table->indexBST = NULL;
-	//table->indexAVL = NULL;
-	//inicializar_rb(&table->indexRB);
+	table->indexAVL = NULL;
+	initializeRb(&table->indexRB);
 	uploadFile(table, BST);
-	//uploadFile(table, AVL);
-	//uploadFile(table, RB);
+	uploadFile(table, AVL);
+	uploadFile(table, RB);
 	if(table->dataFile != NULL)
 		return 1;
 	else
@@ -21,48 +22,46 @@ void removeEnter(char *string) {
 }
 
 int insertTable(table *table, data *data) {
-	int positionNewRecord, retorno;
-	retorno = table->dataFile != NULL;
-	if(retorno) {
-		fseek(table->dataFile, 0L, SEEK_END);
-		//diz onde está o cursor
-		positionNewRecord = ftell(table->dataFile);
-		
-		//bst
-		table->indexBST = (inicializarIndiceBst(positionNewRecord, data->recipe), table->indexBST);
-
-		//avl
-		//table->indexAVL = adicionar_avl(table->indexAVL, inicializar_indice_avl(positionNewRecord, pok->codigo), NULL);
-		
-		// //rb
-		//inserir_rb(&table->indexRB, inicializar_indice_rb(positionNewRecord, pok->descricao));
-		
-		//salvar no arquivo de dados
-		salvar_pokemon(table->dataFile, data);
-	}
-
-	return retorno;
+    int positionNewRecord, retorno;
+    retorno = table->dataFile != NULL;
+    if (retorno) {
+        fseek(table->dataFile, 0L, SEEK_END);
+        // Diz onde está o cursor
+        positionNewRecord = ftell(table->dataFile);
+        
+        // BST
+        bstIndex *newIndexBst = initializeIndexBst(positionNewRecord, data->name);
+        if (newIndexBst == NULL) {
+            printf("Erro ao inicializar o índice na árvore binária de busca (BST).\n");
+            return 0;
+        }
+        table->indexBST = insertBst(newIndexBst, table->indexBST);
+        
+        // AVL
+        table->indexAVL = insertAvl(table->indexAVL, initializeIndexAvl(positionNewRecord, data->servings), NULL);
+        
+        // RB
+        insertRb(&table->indexRB, initializeIndexRb(positionNewRecord, data->difficulty));
+        
+        // Salvar no arquivo de dados
+        saveData(table->dataFile, data);
+    }
+    return retorno;
 }
 
-/*void saveData(FILE *arq, data *data) {
-	fprintf(arq, "%d;", data->recipe);
-	for(int i = 0; i<2; i++){
-		fprintf(arq, "%d,", (int) pok->tipo[i]);
-	}
-	fprintf(arq, ";%f;%s;%d\n", pok->altura, pok->descricao, pok->codigo);
+
+void saveData(FILE *arq, data *data) {
+	fprintf(arq, "%d;%s;%s;%s;%d;%s;", data->removido,data->name, data->ingredients, data->preparation, data->servings, data->difficulty);
 }       
 
-
-                        VER DEPOIS!!!!!!!!!!!!*/
-
-/*void removeData(table* table, int key) {
+void removeData(table* table, int key) {
 	if(table != NULL){
 		data data = searchData(table->dataFile, key);
-		if(!pok.removido){
-			table->indexBST = remover_bst(table->indexBST, pok.nome);
-			table->indexAVL = remover_elemento_avl(table->indexAVL, pok.codigo, NULL);
-			remover_rb(&table->indexRB,&table->indexRB, pok.descricao);
-			fseek(table->dataFile, indice, SEEK_SET);
+		if(!data.removido){
+			table->indexBST = removeBst(table->indexBST, data.name);
+			table->indexAVL = removeElementAvl(table->indexAVL, data.servings, NULL);
+			removeRb(&table->indexRB,&table->indexRB, data.difficulty);
+			fseek(table->dataFile, key, SEEK_SET);
 			char str[] = "1";
 			fwrite(str, 1, sizeof(char), table->dataFile);
 			fseek(table->dataFile, 0L, SEEK_END);
@@ -70,124 +69,145 @@ int insertTable(table *table, data *data) {
 		else
 			printf("Erro ao remover\n");
             
-            VER DEPOIS!!!!
 	}
-}*/
+}
 
 data* readData() {
-	int type, option;
 	data* new = (data*) malloc(sizeof(data));
-	char * buffer = (char *) malloc(256 * sizeof(char));
+	if (new == NULL) {
+		printf("Erro de alocação de memória!\n");
+		return NULL;
+	}
 
 	printf("Recipe Title: ");
-	scanf(" %[^\n]%*c", new->recipe);
-    
-    printf("Ingredients: ");
+	scanf(" %[^\n]%*c", new->name);
+
+	printf("Ingredients: ");
 	scanf(" %[^\n]%*c", new->ingredients);
-    fgets(buffer, 256, stdin);
-    strcpy(new->ingredients, buffer);
 
-	// TIRAR SE DER CERTO COM STRCPY new->ingredients = strdup(buffer);
-	tirar_enter(new->ingredients);
-    
-    printf("Preparation: ");
+	printf("Preparation: ");
 	scanf(" %[^\n]%*c", new->preparation);
-    fgets(buffer, 256, stdin);
-    strcpy(new->preparation, buffer);
 
-	// TIRAR SE DER CERTO COM STRCPYnew->preparation = strdup(buffer);
-	tirar_enter(new->preparation);
-    
-    printf("servings: ");
-	scanf(" %[^\n]%d", new->servings);
-    printf("Difficulty: ");
-	scanf(" %[^\n]%d", new->difficulty);
+	printf("servings: ");
+	scanf("%d", &(new->servings));
+
+	printf("Difficulty: ");
+	scanf(" %[^\n]%*c", new->difficulty);
+
+	new->removido = 0;
+	return new;
 }
 
 void uploadFile(table* table, treeType tipo) {
 	FILE *file;
-	size_t len;
-	char name[16], *line = (char*) malloc(len), delim[] = ";";
+	char name[16], line[256];
+	char delim[] = ";";
 	switch (tipo) {
 	case BST:
 		strcpy(name, "indexbst.dat");
 		break;
-	/*case AVL:
+	case AVL:
 		strcpy(name, "indexavl.dat");
 		break;
 	case RB:
 		strcpy(name, "indexrb.dat");
-		break;*/
+		break;
 	}
 	file = fopen(name, "r+");
-  if(file != NULL){
-		while(getdelim(&line, &len, '\n', file) > 0){
-  			char *ptr;
+	if (file != NULL) {
+		while (fgets(line, sizeof(line), file) != NULL) {
+			char *ptr;
 			ptr = strtok(line, delim);
 			int index = atoi(ptr);
 			ptr = strtok(NULL, delim);
-			tirar_enter(ptr);
+			removeEnter(ptr);
 			switch (tipo) {
-				case BST:
-					table->indexBST = adicionarBst(inicializarIndiceBst(index, ptr), table->indexBST);
-					break;
-				/*case AVL:
-					table->indexAVL = adicionar_avl(table->indexAVL, inicializar_indice_avl(indice, atoi(ptr)), NULL);
-					break;
-				case RB:
-					inserir_rb(&table->indexRB, inicializar_indice_rb(indice, ptr));
-					break;*/
+			case BST:
+				table->indexBST = insertBst(initializeIndexBst(index, ptr), table->indexBST);
+				break;
+			case AVL:
+				table->indexAVL = insertAvl(table->indexAVL, initializeIndexAvl(index, atoi(ptr)), NULL);
+				break;
+			case RB:
+				insertRb(&table->indexRB, initializeIndexRb(index, ptr));
+				break;
 			}
 		}
 		fclose(file);
- 	}
- 	free(line);
+	}
 }
 
-data searchData(FILE *file, int key){
+data searchData(FILE *file, int key) {
     data temp;
-	if(key >= 0 ){ 
-		if(file != NULL){
-            data temp;
-			long len = sizeof(char) * 256;
-			char *buffer = (char *) malloc(len);
-			char delim[] = ";";
+    if (key >= 0 && file != NULL) { 
+        fseek(file, key, SEEK_SET);
+        
+        // Lê uma linha do arquivo
+        char buffer[256];
+        if (fgets(buffer, sizeof(buffer), file) != NULL) {
+            // Divide a linha em campos usando o delimitador ";"
+            char *ptr = strtok(buffer, ";");
+            if (ptr != NULL) {
+                // Converte o primeiro campo (removido) para um inteiro
+                temp.removido = atoi(ptr);
 
-			fseek(file, key, SEEK_SET);
+                // Move para o próximo campo
+                ptr = strtok(NULL, ";");
+                if (ptr != NULL) {
+                    // Copia o segundo campo (name) para temp.name
+                    strcpy(temp.name, ptr);
 
-			getline(&buffer, &len, file);
-			
-			char *ptr = strtok(buffer, delim);
-			//temp.removido = atoi(ptr);
+                    // Move para o próximo campo
+                    ptr = strtok(NULL, ";");
+                    if (ptr != NULL) {
+                        // Copia o terceiro campo (ingredients) para temp.ingredients
+                        strcpy(temp.ingredients, ptr);
 
-			ptr = strtok(NULL, delim);
-			strcpy(temp.recipe, ptr);
-			
-			ptr = strtok(NULL, ",");
-			ptr = strtok(NULL, delim);
-			//temp.ingredients = (char*) malloc(sizeof(ptr));
-			//strcpy(temp.ingredients, ptr);
+                        // Move para o próximo campo
+                        ptr = strtok(NULL, ";");
+                        if (ptr != NULL) {
+                            // Copia o quarto campo (preparation) para temp.preparation
+                            strcpy(temp.preparation, ptr);
 
-			ptr = strtok(NULL, delim);
-			temp.servings = atoi(ptr);
+                            // Move para o próximo campo
+                            ptr = strtok(NULL, ";");
+                            if (ptr != NULL) {
+                                // Converte o quinto campo (servings) para um inteiro
+                                temp.servings = atoi(ptr);
 
-            ptr = strtok(NULL, delim);
-			//temp.difficulty = atoi(ptr);
-			return temp;
-		}
-		printf("Invalid File!\n");
-	} else 
-		printf("Invalid Index!\n");
-	//temp.removido = 1;
-	return temp;
-} 
+                                // Move para o próximo campo
+                                ptr = strtok(NULL, ";");
+                                if (ptr != NULL) {
+                                    // Copia o sexto campo (difficulty) para temp.difficulty
+                                    strcpy(temp.difficulty, ptr);
+
+                                    // Retorna a estrutura de dados preenchida
+                                    return temp;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            printf("Erro ao ler linha do arquivo.\n");
+        }
+    } else {
+        printf("Arquivo inválido ou índice inválido!\n");
+    }
+    
+    // Se algo deu errado, retorne uma estrutura de dados vazia ou com valores padrão
+    data emptyData = {0}; // Inicializa todos os campos com 0
+    return emptyData;
+}
+
 
 void printData(data data){
-	printf("Recipe Title: %d\n", data.recipe);
+	printf("Recipe Title: %s\n", data.name);
 	printf("Ingredients: %s\n", data.ingredients);
-	printf("Preparation: %f\n", data.preparation);
-	printf("Servings: %s", data.servings);
-    Printf("Difficulty: %d", data.difficulty);
+	printf("Preparation: %s\n", data.preparation);
+	printf("Servings: %d\n", data.servings);
+    printf("Difficulty: %s\n", data.difficulty);
 	printf("\n");
 }
 
@@ -201,87 +221,85 @@ void printByRecipe(FILE *file, bst root) {
 	}
 }
 
-/*void listar_por_codigo(FILE *arq, avl root) {
+void printByServings(FILE *arq, avl root) {
 	if(root != NULL) {
-		listar_por_codigo(arq, root->esq);
+		printByServings(arq, root->left);
 		printf("\n-----------------------------------------------\n\n");
-		imprimir_elemento(buscar_pokemon(arq, root->dado->indice));
-		//if(!pok.removido)
-			// imprimir_elemento(pok);
-		listar_por_codigo(arq, root->dir);
+		printData(searchData(arq, root->data->index));
+		printByServings(arq, root->right);
 	}
 }
 
-void listar_por_descricao(FILE *arq, rb root) {
+void printByDifficulty(FILE *arq, rb root) {
 	if(root != NULL) {
-		listar_por_descricao(arq, root->esq);
+		printByDifficulty(arq, root->left);
 		printf("\n-----------------------------------------------\n\n");
 		//dado pok = 
-		imprimir_elemento(buscar_pokemon(arq, root->dado->indice));
+		printData(searchData(arq, root->data->index));
 		//if(!pok.removido)
 			
-		listar_por_descricao(arq, root->dir);
+		printByDifficulty(arq, root->right);
 	}
 }
 
-                VER DEPOIS!!!!*/ 
 
-void saveFileBST(char *nome, bst a) {
-	FILE *file;
-	file = fopen(nome, "w+");
-	if(file != NULL) {
-		saveAuxFileBST(file, a);
-		fclose(file);
-	}
+void saveFileBST(char* name, bst root) {
+    FILE *file = fopen(name, "w+");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo %s para escrita.\n", name);
+        return;
+    }
+    saveAuxFileBST(file, root);
+    fclose(file);
 }
 
-void saveAuxFileBST(FILE* arq, bst root){
-	if(root != NULL) {
-		fprintf(arq, "%d;%s\n", root->data->index, root->data->recipe);
-		salvar_auxiliarBst(root->left, arq);
-		salvar_auxiliarBst(root->right, arq);
-	}
+void saveAuxFileBST(FILE* arq, bst root) {
+    if (root != NULL) {
+        fprintf(arq, "%d;%s\n", root->data->index, root->data->name);
+        saveAuxFileBST(arq, root->left);
+        saveAuxFileBST(arq, root->right);
+    }
 }
 
-/*void salvar_arquivo_avl(char *nome, avl root) {
+void saveFileAVL(char* name, avl a) {
 	FILE *arq;
-	arq = fopen(nome, "w+");
+	arq = fopen(name, "w+");
 	if(arq != NULL) {
-		salvar_auxiliar_avl(root, arq);
+		saveAuxFileAVL(arq, a);
 		fclose(arq);
 	}
 }
 
-void salvar_auxiliar_avl(avl root, FILE *arq){
+void saveAuxFileAVL(FILE *arq, avl root){
 	if(root != NULL) {
-		fprintf(arq, "%d;%d\n", root->dado->indice, root->dado->codigo);
-		salvar_auxiliar_avl(root->esq, arq);
-		salvar_auxiliar_avl(root->dir, arq);
+		fprintf(arq, "%d;%d\n", root->data->index, root->data->servings);
+		saveAuxFileAVL(arq, root->left);
+		saveAuxFileAVL(arq, root->right);
 	}
 
 }
 
-void salvar_arquivo_rb(char *nome, rb root) {
+void saveFileRB(char* name, rb a) {
 	FILE *arq;
-	arq = fopen(nome, "w+");
+	arq = fopen(name, "w+");
 	if(arq != NULL) {
-		salvar_auxiliar_rb(root, arq);
+		saveAuxFileRB(arq, a);
 		fclose(arq);
 	}
 }
 
-void salvar_auxiliar_rb(rb root, FILE *arq){
+void saveAuxFileRB(FILE* arq, rb root){
 	if(root != NULL) {
-		fprintf(arq, "%d;%s\n", root->dado->indice, root->dado->descricao);
-		salvar_auxiliar_rb(root->esq, arq);
-		salvar_auxiliar_rb(root->dir, arq);
+		fprintf(arq, "%d;%s\n", root->data->index, root->data->difficulty);
+		saveAuxFileRB(arq, root->left);
+		saveAuxFileRB(arq, root->right);
 	}
 
-}*/
+}
 
 void finalizar (table* table) {
 	fclose(table->dataFile);
-	salvar_arquivoBst("indicesbst.dat", table->indexBST);
-//salvar_arquivo_avl("indicesavl.dat", table->indexAVL);
-//	salvar_arquivo_rb("indicesrb.dat", table->indexRB);
+	saveFileBST("indexbst.dat", table->indexBST);
+	saveFileAVL("indexavl.dat", table->indexAVL);
+	saveFileRB("indexrb.dat", table->indexRB);
 }
