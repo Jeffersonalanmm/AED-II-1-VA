@@ -3,6 +3,7 @@
 #include "bst.h"
 #include <string.h>
 
+// Inicializa um novo índice BST
 bstIndex* initializeIndexBst(int index, char* name)  {
 	bstIndex *novo = (bstIndex*) malloc(sizeof(bstIndex));
 	novo->index = index;
@@ -11,6 +12,7 @@ bstIndex* initializeIndexBst(int index, char* name)  {
 	return novo;
 }
 
+// Insere um novo nó BST
 bst insertBst(bstIndex *valor, bst raiz) {
     if(raiz == NULL) {
 		bst novo = (bst) malloc(sizeof(struct bstNode));
@@ -28,6 +30,7 @@ bst insertBst(bstIndex *valor, bst raiz) {
 	return raiz;
 }
 
+// Remove um nó BST
 bst removeBst(bst raiz, char* name) {
   if (raiz == NULL)
     return raiz;
@@ -59,6 +62,7 @@ bst removeBst(bst raiz, char* name) {
   return raiz;
 }
 
+// Retorna a altura da árvore BST
 int heightBst(bst raiz) {
 	if(raiz == NULL) {
 		return 0;
@@ -66,6 +70,7 @@ int heightBst(bst raiz) {
 	return 1 + max(heightBst(raiz->right), heightBst(raiz->left));
 }
 
+// Retorna o maior entre dois números
 int max(int a, int b) {
 	if(a > b)
 		return a;
@@ -73,6 +78,7 @@ int max(int a, int b) {
 		return b;
 }
 
+// Retorna o elemento máximo na árvore BST
 bstIndex* maxElementBst(bst raiz) {
 	if(raiz == NULL)
 		return NULL;
@@ -82,6 +88,7 @@ bstIndex* maxElementBst(bst raiz) {
 		return maxElementBst(raiz->right);
 }
 
+// Retorna o elemento mínimo na árvore BST
 bstIndex* minElementBst(bst raiz) {
 	if(raiz == NULL)
 		return NULL;
@@ -91,22 +98,7 @@ bstIndex* minElementBst(bst raiz) {
 		return minElementBst(raiz->left);
 }
 
-void preOrderBst(bst raiz) {
-	if(raiz != NULL) {
-		printElementBst(raiz);
-		preOrderBst(raiz->left);
-		preOrderBst(raiz->right);
-	}
-}
-
-void posOrderBst(bst raiz) {
-	if(raiz != NULL) {
-		posOrderBst(raiz->left);
-		posOrderBst(raiz->right);
-		printElementBst(raiz);
-	}
-}
-
+// Percorre a árvore BST em ordem
 void inOrderBst(bst raiz) {
 	if(raiz != NULL) {
 		inOrderBst(raiz->left);
@@ -115,6 +107,7 @@ void inOrderBst(bst raiz) {
 	}
 }
 
+// Imprime um elemento da árvore BST
 void printElementBst(bst raiz) {
 	if(raiz != NULL) {
 		printf("%s | ", raiz->data->name);
@@ -122,6 +115,7 @@ void printElementBst(bst raiz) {
 	}
 }
 
+// Procura um índice BST com base no nome
 int searchIndexBst(bst root, char* name) {
     if (root == NULL) {
         return -1; // Retorna -1 se a árvore estiver vazia ou se o elemento não for encontrado

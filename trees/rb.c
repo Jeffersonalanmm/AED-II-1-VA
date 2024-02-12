@@ -4,6 +4,7 @@
 
 rb no_null;
 
+// Inicializa um novo índice RB
 rbIndex* initializeIndexRb(int index, char *difficulty)  {
 	rbIndex *new = (rbIndex*) malloc(sizeof(rbIndex));
 	new->index = index;
@@ -12,6 +13,7 @@ rbIndex* initializeIndexRb(int index, char *difficulty)  {
 	return new;
 }
 
+// Inicializa uma árvore RB
 void initializeRb(rb *root) {
 	*root = NULL;
 	no_null = (rb) malloc(sizeof(struct rbNode));
@@ -21,30 +23,35 @@ void initializeRb(rb *root) {
 	no_null->right = NULL;
 }
 
+// Verifica se um elemento é a raiz da árvore RB
 int isRootRb(rb element) {
 	return (element->father == NULL);
 }
 
+// Verifica se um elemento é filho esquerdo na árvore RB
 int isLeftChildRb(rb element) {
 	return (element->father != NULL && element == element->father->left);
 }
+
+// Verifica se um elemento é filho direito na árvore RB
 int isRightChildRb(rb element) {
 	return (element->father != NULL && element == element->father->right);
 }
 
+// Retorna o irmão de um elemento na árvore RB
 rb isBrotherRb(rb element) {
-	//se ele eh o filho leftuerdo, retorna o filho do nodo acima dele, a righteita
 	if(isLeftChildRb(element))
 		return element->father->right;
 	else
 		return element->father->left;
 }
 
+// Retorna o tio de um elemento na árvore RB
 rb uncleRb(rb element) {
 	return isBrotherRb(element->father);
 }
 
-
+// Retorna a cor de um elemento na árvore RB
 enum color colorRb(rb element) {
 	enum color c;
 	if(element == NULL)
@@ -54,6 +61,7 @@ enum color colorRb(rb element) {
 	return c;
 }
 	
+// Retorna a altura da árvore RB
 int heightRb(rb a) {
 	if(a == NULL) 
 		return 0;
@@ -69,6 +77,7 @@ int heightRb(rb a) {
 	}
 }
 
+// Retorna o elemento máximo na árvore RB
 rbIndex* maxElementRb(rb root) {
 	if(root == NULL)
 		return NULL;
@@ -78,14 +87,16 @@ rbIndex* maxElementRb(rb root) {
 		return maxElementRb(root->right);
 }
 
-void printRb(rb root) {
+// Imprime a árvore RB em ordem
+void inOrderRb(rb root) {
 	if(root != NULL) {
-		printRb(root->left);
+		inOrderRb(root->left);
 		printElementRb(root);
-		printRb(root->right);
+		inOrderRb(root->right);
 	}
 }
 
+// Imprime um elemento da árvore RB
 void printElementRb(rb root) {
 	switch(root->color) {
 		case BLACK:
@@ -100,7 +111,7 @@ void printElementRb(rb root) {
 	}
 }
 
-
+// Insere um novo elemento na árvore RB
 void insertRb(rb *root, rbIndex *valor) {
 	rb aux, father, new;
 	aux = *root; 
@@ -108,7 +119,6 @@ void insertRb(rb *root, rbIndex *valor) {
 
 	while(aux != NULL) {
 		father = aux;
-		//verificando para que lado devemos percolorrer
 		if(strcmp(aux->data->difficulty, valor->difficulty) >= 0)
 			aux = aux->left;
 		else
@@ -131,20 +141,16 @@ void insertRb(rb *root, rbIndex *valor) {
 			father->left = new; 
 	}
 
-	//essa eh a root de toda a arvore, não a root relativa;
-	//apos inserido o element, precisamos verificar a color dele e afins
 	adjustRb(root, new);
-
 }
 
+// Remove um elemento da árvore RB
 void removeRb(rb *root, rb* root_relativa, char* difficulty) {
     rb aux = *root_relativa;
 
     while(aux != NULL) {
         if(strcmp(difficulty, aux->data->difficulty) == 0) {
-            // Sem filhos
             if(aux->left == NULL && aux->right == NULL) {
-                // Remove a root sem filhos
                 if(isRootRb(aux)) {
                     free(aux->data->difficulty);
                     free(aux->data);
@@ -152,7 +158,6 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
                     *root = NULL;
                     break;
                 }
-                // Sem filhos, mas não root
                 if(aux->color == RED) {
                     if(isLeftChildRb(aux))
                         aux->father->left = NULL;
@@ -164,8 +169,6 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
                     break;
 
                 } else {
-                    /* Se o elemento for BLACK, 
-                       precisa substituir pelo no_null */
                     rb no_null_father = aux->father;
                     rb no_null_child = aux;
 
@@ -178,8 +181,6 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
                     break;
                 }
             }
-            // Um filho
-            // Apenas o filho esquerdo
             if(aux->right == NULL) {
                 aux->left->color = BLACK;
                 if(isRootRb(aux)) {
@@ -195,7 +196,6 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
                 free(aux);
                 break;
             }
-            // Apenas filho direito
             if(aux->left == NULL) {
                 aux->right->color = BLACK;
                 if(isRootRb(aux)) {
@@ -211,7 +211,6 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
                 free(aux);
                 break;
             }
-            // Dois filhos
             if(aux->right != NULL && aux->left != NULL) {
                 aux->data = maxElementRb(aux->left);
                 removeRb(root, &(aux->left), aux->data->difficulty);
@@ -227,17 +226,14 @@ void removeRb(rb *root, rb* root_relativa, char* difficulty) {
     }
 }
 
-
+// Reajusta a árvore RB após a remoção de um elemento
 void readjustRb(rb *root, rb element) {
-	
-	//caso 1: eh a root
 	if(isRootRb(element)) {
 		element->color = BLACK;
 
 		return;
 	}
 
-	//caso 2: father BLACK, irmao RED e sobrinhos BLACK
 	if(colorRb(element->father) == BLACK &&
 	 colorRb(isBrotherRb(element)) == RED &&
 	 (colorRb(isBrotherRb(element)->right) == BLACK || isBrotherRb(element)->right == NULL) &&
@@ -253,7 +249,6 @@ void readjustRb(rb *root, rb element) {
 		return;
 	 }
 
-	 //caso 3: father, irmaos e sobrinhos BLACKs
 	 if(colorRb(element -> father) == BLACK && colorRb(isBrotherRb(element)) == BLACK &&
 		(colorRb(isBrotherRb(element)-> right)  == BLACK || isBrotherRb(element) -> right == NULL) && 
 		(colorRb(isBrotherRb(element) -> left)  == BLACK || isBrotherRb(element) -> left == NULL)){	
@@ -264,7 +259,6 @@ void readjustRb(rb *root, rb element) {
 		return;
 	}
 
-	//caso 4: father RED, irmao e sobrinhps BLACK
 	if(colorRb(element -> father) == RED && 
 		(colorRb(isBrotherRb(element)) == BLACK || isBrotherRb(element) == NULL) &&
 		(colorRb(isBrotherRb(element)-> right)  == BLACK || isBrotherRb(element) -> right == NULL) && (colorRb(isBrotherRb(element) -> left) == BLACK || isBrotherRb(element) -> left == NULL)){
@@ -277,9 +271,7 @@ void readjustRb(rb *root, rb element) {
 			return;
 
 	}
-	// CASO 5: irmão BLACK e um dos sobrinhos RED
 
-	//caso 5a
 	if(isLeftChildRb(element) && colorRb(isBrotherRb(element)) == BLACK &&
 		(colorRb(isBrotherRb(element) -> right) == BLACK || isBrotherRb(element) -> right == NULL) && colorRb(isBrotherRb(element) -> left) == RED){
 			
@@ -292,7 +284,6 @@ void readjustRb(rb *root, rb element) {
 			return;
 		}
 
-	//caso 5b
 	if(isRightChildRb(element) && colorRb(isBrotherRb(element)) == BLACK &&
 		(colorRb(isBrotherRb(element) -> left) == BLACK || isBrotherRb(element) -> left == NULL) 		
 		&& colorRb(isBrotherRb(element) -> right) == RED) {
@@ -306,9 +297,6 @@ void readjustRb(rb *root, rb element) {
 			return;
 	}
 
-	//caso 6: irmao BLACK e um dos sobrinhos RED
-
-	//caso 6a:
 	if(isLeftChildRb(element) && 
 		colorRb(isBrotherRb(element)) == BLACK && 
 		colorRb(isBrotherRb(element) -> right) == RED) {
@@ -326,7 +314,6 @@ void readjustRb(rb *root, rb element) {
 		return;
 	}
 
-	//caso 6b
 	if(isRightChildRb(element) && 
 		colorRb(isBrotherRb(element)) == BLACK && 
 		colorRb(isBrotherRb(element) -> left) == RED) {
@@ -345,6 +332,7 @@ void readjustRb(rb *root, rb element) {
 	}
 }
 
+// Remove um nó duplamente preto da árvore RB
 void removeDoubleBlackRb(rb *root, rb element) {
 	if(element == no_null) {
 		if(isLeftChildRb(element))
@@ -356,96 +344,62 @@ void removeDoubleBlackRb(rb *root, rb element) {
 	}
 }
 
-
+// Realiza o ajuste da árvore RB após inserção
 void adjustRb(rb* root, rb new) {
-	
-	//se o father e o element forem REDs, precisa adjustRb
 	while(colorRb(new->father) == RED && colorRb(new) == RED) {
-		//caso 1
 		if(colorRb(uncleRb(new)) == RED){
-			//tornando o uncleRb e father do element inseido BLACK
 			uncleRb(new)->color = BLACK;
 			new->father->color = BLACK;
 			new->father->father->color = RED;
-
-			//agr eu quero que verifique se o avo do element inserido
-			//que se tornou RED, está na color colorreta, ent eu atualizo
 			new = new->father->father;
-
 			continue;
 		}
-		//case 2a: rotacao simples righteita
 		if(isLeftChildRb(new) && isLeftChildRb(new->father)) {
-			//rotacao simples passando a root e o avo do element
 			simpleRightRotationRb(root, new->father->father);
 			new->father->color = BLACK;
 			new->father->right->color = RED;
-
 			continue;
 		}
-		//caso 2b: rotacao simples leftuerda
 		if(isRightChildRb(new) && isRightChildRb(new->father)) {
 			simpleLeftRotationRb(root, new->father->father);
 			new->father->color = BLACK;
 			new->father->left->color = RED;
-
 			continue;
 		}
-		//caso 3a: rotacao dupla righteita
 		if(isRightChildRb(new) && isLeftChildRb(new->father)) {
 			simpleLeftRotationRb(root, new->father);
 			simpleRightRotationRb(root, new->father);
 			new->right->color = RED;
 			new->left->color = RED;
 			new->color = BLACK;
-
 			continue;
 		}
-		//caso 3b: rotacao dupla leftuerda
 		if(isLeftChildRb(new) && isRightChildRb(new->father)) {
             simpleRightRotationRb(root, new->father);
             simpleLeftRotationRb(root, new->father);
             new->right->color = RED;
             new->left->color = RED;
             new->color = BLACK;
-            
             continue;
-
 		}
 	}
-	//Após todas as colorreções a root pode ter ficado na color vermelha, portanto passamos ela novamente para color preta
 	(*root)->color = BLACK;
 }
 
-/*
-		(p)					(u)
-	   /   \               /   \
-	 (u)	(t3)  ==>	 (t1)	(p)
-	/   \			            /  \   
- (t1)   (t2)		          (t2) (t3)                           
-*/
-
-
+// Realiza uma rotação simples para a direita na árvore RB
 void simpleRightRotationRb(rb *root, rb pivo) {
 	rb p, u, t2;
 	p = pivo;
 	u = pivo->left;
 	t2 = u->right;
 
-	//para fazer a ligacao da root a sub-arvore com seu father,
-	//eh preciso saber se o pivo era um filho leftuerdo ou righteito
-
 	int posicao_pivo_left = isLeftChildRb(pivo);
-	//pois ele precisa ser inserido em um dos lados do father
 
-	//trocando o lado do t2
 	p->left = t2;
 
-	//se ele n for null, precisa linká-lo novamente
 	if(t2 != NULL) 
 		t2->father = pivo;
 
-	//agora fazendo a rotação dos elements restantes
 	u->right = pivo;
 	u->father = p->father;
 	p->father = u;
@@ -453,13 +407,9 @@ void simpleRightRotationRb(rb *root, rb pivo) {
 	p->color = RED;
 	u->color = BLACK;
 
-	//testando se u eh root, pois se for, a root da arvore recebe ele
 	if(isRootRb(u))
 		*root = u;
 
-	//caso n seja, vamos descobrir se o pivo (valor que agr o u ocupa o lugar)
-	//era filho leftuerdo ou n para posicioná-lo colorretamente
-	//em relação ao father
 	else {
 		if(posicao_pivo_left)
 			u->father->left = u;
@@ -468,14 +418,7 @@ void simpleRightRotationRb(rb *root, rb pivo) {
 	}
 }
 
-/*
-		(p)						(u)
-	   /   \                   /   \
-	 (t1)	(u)       ==>	 (p)	(t3)
-	 	   /   \			/	\   
-	 	(t2)   (t3)		  (t1)  (t2) 
-  
-*/
+// Realiza uma rotação simples para a esquerda na árvore RB
 void simpleLeftRotationRb(rb *root, rb pivo) {
 	rb p, u, t2;
 	p = pivo;
@@ -506,17 +449,10 @@ void simpleLeftRotationRb(rb *root, rb pivo) {
 	}
 }
 
-void preOrderRb (rb root) {
-  if (root != NULL) {
-      printElementRb(root);
-      preOrderRb (root->left);
-      preOrderRb (root->right);
-    }
-}
-
+// Busca o índice de um elemento na árvore RB
 int searchIndexRb(rb root, char* difficulty) {
     if (root == NULL) {
-        return -1; // Retorna -1 se a árvore estiver vazia
+        return -1; 
     }
     
     int cmp = strcmp(difficulty, root->data->difficulty);

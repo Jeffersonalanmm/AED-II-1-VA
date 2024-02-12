@@ -2,21 +2,23 @@
 #include <stdlib.h>
 #include "avl.h"
 
+// Retorna a altura da árvore AVL
 int heightAvl(avl a) {
 	if(a == NULL) {
-		return 0;
+		return 0; // Retorna 0 se a árvore estiver vazia
 	} else {
 		int left = heightAvl(a->left);
 		int right = heightAvl(a->right);
 	
 		if(left > right)
-			return left + 1;
+			return left + 1; // Retorna a altura da subárvore esquerda mais 1
 		else 
-			return right + 1;
+			return right + 1; // Retorna a altura da subárvore direita mais 1
 		
 	}
 }
 
+// Inicializa um novo índice AVL
 avlIndex* initializeIndexAvl(int index, int servings)  {
 	avlIndex *novo = (avlIndex*) malloc(sizeof(avlIndex));
 	novo->index = index;
@@ -24,6 +26,7 @@ avlIndex* initializeIndexAvl(int index, int servings)  {
 	return novo;
 }
 
+// Procura um índice AVL com base no número de porções
 int searchIndexAvl(avl root, int servings) {
     if (root == NULL) {
         return -1; // Retorna -1 se a árvore estiver vazia
@@ -38,13 +41,13 @@ int searchIndexAvl(avl root, int servings) {
     }
 }
 
-
+// Insere um novo nó AVL
 avl insertAvl(avl a, avlIndex *v, int *grow) {
     if(grow == NULL) {
         int c = 1;
         grow = &c;
     }
-	//caso base a raiz eh vazia, ent cria um novo no
+	// Caso base: a raiz é vazia, então cria um novo nó
 	if(a == NULL) {
 		avl new = (avl) malloc(sizeof(avlNode));
 		new->data = v;
@@ -55,58 +58,58 @@ avl insertAvl(avl a, avlIndex *v, int *grow) {
 
 		return new;
 		
-	} //caso não esteja, buscar onde inserir
+	} // Caso contrário, busca onde inserir
 	else {
-		//se o valor for maior que a raiz, add elemento a righteita
+		// Se o valor for maior que a raiz, adiciona o elemento à direita
 		if(v->servings > a->data->servings) {
 			a->right = insertAvl(a->right, v, grow);
 
-			//calcular os reajustes do fator de balanco
+			// Calcula os reajustes do fator de balanceamento
 			if(*grow) {
 				switch(a->fb){
-					//arvore totalmente balancada e agr tem um fator no lado righteito
+					// Árvore totalmente balanceada e agora tem um fator no lado direito
 					case 0:
 						a->fb = 1;
 					   *grow = 1;
 					    break;
 					
-					//arvore tava pendendo pra leftuerda, agr ficou equilibrada
+					// Árvore pendendo para a esquerda e agora ficou equilibrada
 					case -1:
 						a->fb = 0;
 						*grow = 0;
 						break;
 
-					//caso o fb no lado righteito 1 e agr se torne 2, logo precisa ser balanceada
+					// Caso o fator de balanceamento no lado direito seja 1 e agora se torne 2, precisa ser balanceada
 					case 1:
-						//a->fb = 2;
+						// a->fb = 2;
 						*grow = 0; 
-						a = rotationAvl(a);//como pendeu pra righteita, rota para leftuerda
+						a = rotationAvl(a); // Como pendeu para a direita, rotaciona para a esquerda
 						break;
 
 				}
 			}
 		} 
 		else {
-			//elemento menor que a raiz, add elemento leftuerda
+			// Elemento menor que a raiz, adiciona o elemento à esquerda
 			a->left = insertAvl(a->left, v, grow);
 
-			//calcular os reajustes do fator de balanco
+			// Calcula os reajustes do fator de balanceamento
 			if(*grow) {
 				switch(a->fb) {
-					//arvore balanceada e agr pende 1 para righteita
+					// Árvore balanceada e agora pende 1 para a direita
 					case 0:
 						a->fb = -1;
 						*grow = 1;
 						break;
-					//arvore pende um para leftuerda e agr equilibra
+					// Árvore pende um para a esquerda e agora equilibra
 					case 1:
 						a->fb = 0;
 						*grow = 0;
 						break;
 
-					//pendia 1 para leftuerda e agr desbalanceia
+					// Pendia 1 para a esquerda e agora desequilibra
 					case -1:
-						//a->fb = -2;
+						// a->fb = -2;
 						*grow = 0;
 						a = rotationAvl(a);
 						break;
@@ -117,6 +120,8 @@ avl insertAvl(avl a, avlIndex *v, int *grow) {
 	}
 	return a;
 }
+
+// Remove um elemento da árvore AVL
 avl removeElementAvl(avl a, int v, int *down) {
     if (a == NULL) {
         *down = 0;
@@ -195,9 +200,7 @@ avl removeElementAvl(avl a, int v, int *down) {
     return a;
 }
 
-//chamar todas rotacoes
-//e verificar qual o desbalanceamento atraves dos ifs
-//e ajustar para cada caso especifico
+// Executa uma rotação AVL
 avl rotationAvl(avl a){
     if (a->fb > 0){
         if(a->right->fb >= 0){
@@ -215,103 +218,62 @@ avl rotationAvl(avl a){
     }
 }
 
-/*
-		(p)						(u)
-	   /   \                   /   \
-	 (t1)	(u)       ==>	 (p)	(t3)
-	 	   /   \			/	\   
-	 	(t2)   (t3)		  (t1)  (t2) 
-  
-*/
-
+// Executa uma rotação simples para a esquerda
 avl simpleLeftRotationAvl(avl a) {
-	//quem ta desbalanceado eh p
-	// fb(p) == 2, fb(u) == 1
+	// O nó desbalanceado é p, fb(p) == 2 e fb(u) == 1
 	avl p, u;
 	p = a;
 	u = p->right;
 
-	//corrigindo fatores de balanco
+	// Corrige os fatores de balanceamento
 	u->fb = 0;
 	p->fb = 0;
 
-	//rotacao_avl
+	// Rotação AVL
 	p->right = u->left;
 	u->left = p;
 
 	return u;
 }
-/*
-		(p)					(u)
-	   /   \               /   \
-	 (u)	(t3)  ==>	 (t1)	(p)
-	/   \			            /  \   
- (t1)   (t2)		          (t2) (t3)                           
-*/
 
-
+// Executa uma rotação simples para a direita
 avl simpleRightRotationAvl(avl a) {
-	//fb(p) == -2, fb(u) == -1
+	// fb(p) == -2 e fb(u) == -1
 	avl p, u;
 
 	p = a;
 	u = p->left;
 
-	//corrigindo fatores de balanco
+	// Corrige os fatores de balanceamento
 	u->fb = 0;
 	p->fb = 0;
 	
-	//rotação
+	// Rotação
 	p->left = u->right;
 	u->right = p;
 
 	return u;
 }
 
-// avl rotacao_dupla_righteita_avl(avl a) {
-// 	avl p, u;
-// 	p = a;
-// 	u = p->left;
-
-// 	//corrigindo fatores de balanco
-// 	u->fb = 1;
-// 	p->fb = -1;
-
-// 	p->left = u->right;
-// 	u->right = p;
-	
-// 	return u;
-// }	
-
-
-/*
- /*  (p)             (p)             (v)
-     / \             / \             / \
-    t1 (u)     =>   t1 (v)    =>   (p) (u)
-       / \             / \         / \  / \
-     (v)  t4          t2 (u)      t1 t2 t3 t4
-     / \                 / \
-    t2  t3              t3  t4
- */
-
+// Executa uma rotação dupla para a esquerda
 avl doubleLeftRotationAvl(avl a){
- 	//fb(p) = 2, fb(u) = -1
+ 	// fb(p) = 2 e fb(u) = -1
     avl p, u, v;
 
     p = a;
     u = p->right;
     v = u->left;
 
-    //Rotação righteita
+    // Rotação à direita   
     u->left = v->right;
     v->right = u;
     p->right = v;
 
-    //Rotção leftuerda
+    // Rotação à esquerda
     p->right = v->left;
     v->left = p;
     
-    //Atualizando os fatores de balanço
+    // Atualizando os fatores de balanceamento
     if(v->fb==0){  
         u->fb = 0;
         v->fb = 0;
@@ -332,35 +294,25 @@ avl doubleLeftRotationAvl(avl a){
    return v;
 }
 
-
- /*   p               p               v
-     / \             / \             / \
-    u  t4     =>    v   t4    =>    u    p
-   / \             / \             / \  / \
-  t1  v           u  t3           t1 t2 t3 t4
-     / \         / \
-    t2  t3      t1  t2
- */
-
-
+// Executa uma rotação dupla para a direita
 avl doubleRightRotationAvl(avl a) {
-	//fb(p) = -2, fb(u) = 1
+	// fb(p) = -2 e fb(u) = 1
 	avl p, u, v;
 
 	p = a;
 	u = p->left;
     v = u->right;
 
-    // Rotação à leftuerda    
+    // Rotação à esquerda    
     u->right = v->left;
     v->left = u;
     p->left = v;
     
-    //Rotação á righteita
+    // Rotação à direita
     p->left=v->right;
     v->right = p;
     
-    //Atualizando os fatores de balanço
+    // Atualizando os fatores de balanceamento
     if(v->fb == 0){ 
 
         u->fb = 0;
@@ -384,22 +336,7 @@ avl doubleRightRotationAvl(avl a) {
     return v;
 }
 
-void preOrderAvl(avl raiz) {
-	if(raiz != NULL) {
-		printElementAvl(raiz);
-		preOrderAvl(raiz->left);
-		preOrderAvl(raiz->right);
-	}
-}
-
-void posOrderAvl(avl raiz) {
-	if(raiz != NULL) {
-		posOrderAvl(raiz->left);
-		posOrderAvl(raiz->right);
-		printElementAvl(raiz);
-	}
-}
-
+// Percorre a árvore AVL em ordem
 void inOrderAvl(avl raiz) {
 	if(raiz != NULL) {
 		inOrderAvl(raiz->left);
@@ -408,6 +345,7 @@ void inOrderAvl(avl raiz) {
 	}
 }
 
+// Imprime um elemento da árvore AVL
 void printElementAvl(avl raiz) {
 	if(raiz != NULL) {
 		printf("%d | ", raiz->data->servings);

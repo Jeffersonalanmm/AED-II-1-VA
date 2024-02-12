@@ -1,5 +1,5 @@
-#ifndef TABELA_H
-#define TABELA_H
+#ifndef TABLE_H
+#define TABLE_H
 #include <stdio.h>
 #include <stdlib.h>
 #include "../trees/bst.h"
@@ -9,43 +9,18 @@
 #include "../trees/avl.h"
 #include "../trees/avl.c"
 
-#define MAX 1000 // Defina o máximo de entradas de dados que você espera
-
-enum treeType {BST, AVL, RB};
+enum treeType {BST, AVL, RB};           //enum para os tipos de árvores
 typedef enum treeType treeType;
 
 typedef struct recipeBook {
-    int removido;
+    int removed;
     char name[80];
     char ingredients[200];
     char preparation[200];
     int  servings;
     char difficulty[20];
 } data;
-
-/*typedef struct bstNode{
-    bstIndex *data;
-    struct bstNode *left, *right;
-}bstNode;
-
-typedef struct bstNode* bst;
-
-typedef struct avlNode{
-	int fb;
-    avlIndex *dado;
-	struct avlNode *left, *right;
-}avlNode;
-
-typedef struct avlNode* avl;
-
-typedef struct rbNode{
-	rbIndex *dado;
-	enum cor cor;
-	struct rbNode *left, *right, *father;
-}rbNode;
-
-typedef struct rbNode* rb;*/
-
+                                        // struct para o livro de receitas e para a tabela
 typedef struct table{
     FILE *dataFile;
     bst indexBST;
@@ -54,23 +29,20 @@ typedef struct table{
 }table;
 
 int initializeTable(table* table);
-
 int insertTable(table* table, data* data);
 data searchData(FILE* file, int key);
 void removeData(table* table, int key);
 void printData(data data);
-
 void saveData(FILE* arq, data* data);
 void printByRecipe(FILE* arq, bst root);
 void printByServings(FILE* arq, avl root);
 void printByDifficulty(FILE* arq, rb root);
-void saveFileBST(char* nome, bst a);
+void saveFileBST(char* nome, bst a);                //Assinatura das funções
 void saveAuxFileBST(FILE* arq, bst root);
 void saveFileAVL(char* nome, avl a);
 void saveAuxFileAVL(FILE* arq, avl root);
 void saveFileRB(char* nome, rb a);
 void saveAuxFileRB(FILE* arq, rb root);
-
 data* readData();
 void uploadFile(table* table, treeType type);
 void removeEnter(char *string);
